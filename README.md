@@ -89,7 +89,7 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 | **18** | Activate Swap | Enable swap partition/file |
 | **19** | Deactivate Swap | Disable swap partition/file |
 | **20** | Increase dom0 Memory | Modify GRUB memory limits |
-| **21** | Restore GRUB Defaults | Revert GRUB + swap + zram-service to defaults |
+| **21** | Restore GRUB Defaults | Revert GRUB to defaults RAM memory |
 | **22** | Check Tmpfs Status | Verify active tmpfs mounts |
 
 ---
