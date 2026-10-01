@@ -1,5 +1,145 @@
 #!/bin/bash
 
+#zram pool in 100% zram for amnesic VMs in qubes OS!
+#zram-pool-suit.sh
+
+#Functions and order 
+# control + f #begin funcion_name() and #end funcion_name()
+# check_root()
+
+#BUGS AND TREATMENT
+#to repair or improve
+#repeated functions, look for #2 repeated
+# BUG: remove_zram_pool() does not detect if zram_pool is already removed
+#      Still executes removal commands regardless of pool status,
+#      but the program continues working normally despite the errors
+
+# Global variables block
+
+#----------------------------------------------------------------
+# BEGIN SECTION
+# Qubes DVM Clone Manager Functions : Separared by category for organization
+
+# get_vms_in_zram_pool()
+
+# is_vm_in_zram_pool()
+
+# list_all_vms()
+
+# add_entry()
+
+# create_all_clones()
+
+# create_single_clone()
+
+# add_more_entries()
+
+# remove_entry()
+
+# clear_registry()
+
+# delete_specific_dvm()
+
+# delete_all_dvms()
+
+# check_status()
+
+# END SECTION
+# Qubes DVM Clone Manager Functions : Separared by category for organization
+#----------------------------------------------------------------
+
+#****************************************************************
+# BEGIN
+# Zram Pool Creator, Removal, and Dom0 Anti-Forensic Metadata Defense
+
+# zram_pool()
+#   # zram-pool.service (embedded systemd unit)
+#   # zram-pool-create.sh (embedded script)
+
+# amnesic_logs_metadata_dom0()
+#   # journald.conf (embedded config)
+#   # clean.service (embedded systemd unit)
+#   # clean.sh (embedded script)
+
+# remove_zram_pool()
+
+# check_zram_amnesic_status()
+
+# create_all_clones()
+
+# create_single_clone() #2 repeated
+
+# remove_entry() #2 repeated
+
+# clear_registry() #2 repeated
+
+# delete_specific_dvm() #2 repeated
+
+# delete_all_dvms() #2 repeated
+
+# check_status() #2 repeated
+
+# END SECTION
+# Zram Pool Creator, Removal, and Dom0 Anti-Forensic Metadata Defense
+#****************************************************************
+
+#----------------------------------------------------------------
+# BEGIN SECTION
+# Dom0 Amnesic and anti-forensic metadata defense
+
+# revert_tmpfs_optimization()
+
+# dom0_tmpfs_metadata()
+#   # tmpfs.conf (embedded tmpfiles config)
+#   # clean.service (embedded systemd unit)
+#   # clean.sh (embedded script)
+
+# get_user_dom0()
+
+# disable_bash_history()
+
+# enable_bash_history()
+
+# check_tmpfs_simple()
+
+# dom0-ram-manager()
+
+# restore_grub_default_4g()
+
+# swap_on()
+
+# swap_off()
+
+# system_wide_metadata_randomizer()
+#   # randomize_file()
+#   # randomize_dir()
+#   # is_protected()
+
+# END SECTION
+# Dom0 Amnesic and anti-forensic metadata defense
+#----------------------------------------------------------------
+
+#****************************************************************
+# BEGIN SECTION
+# Qubes Anti Cold Boot Attack
+
+# anti_cold_boot()
+#   # module-setup.sh (embedded dracut module)
+#   # wipe-ram-needshutdown.sh (embedded dracut module)
+#   # wipe-ram.sh (embedded dracut module)
+#   # ram-wipe-lib.sh (embedded library)
+#   # 30-ram-wipe.conf (embedded dracut config)
+
+# remove_anti_cold_boot()
+
+# END SECTION
+# Qubes Anti Cold Boot Attack
+#****************************************************************
+
+# show_menu_main()
+
+# Main while loop block
+
 
 # Global Variables
 REGISTRY_FILE="/etc/qubes/zram-dvm-registry.conf"
@@ -7,6 +147,8 @@ ZRAM_POOL="zram_pool"
 ZRAM_VG="zram_vg"
 QUBES_APPVM_DIR="/var/lib/qubes/appvms"
 
+
+#begin check_root()
 check_root()
 {
 # Check if the script is run as root
@@ -16,6 +158,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 }
+#end check_root()
 check_root
 
 # =============================================================================
@@ -50,6 +193,7 @@ QUBES_APPVM_DIR="/var/lib/qubes/appvms"
 # =============================================================================
 
 # Get list of all VMs that are currently in zram_pool by checking LVM devices
+#begin get_vms_in_zram_pool()
 get_vms_in_zram_pool() {
     local vms=""
     
@@ -92,29 +236,35 @@ get_vms_in_zram_pool() {
     
     echo "$vms" | tr ' ' '\n' | sort -u | grep -v '^$'
 }
+#end get_vms_in_zram_pool()
 
 # Check if a specific VM is in zram_pool
+#begin is_vm_in_zram_pool()
 is_vm_in_zram_pool() {
     local vm_name="$1"
     local vms=$(get_vms_in_zram_pool)
     echo "$vms" | grep -qx "$vm_name"
 }
+#end is_vm_in_zram_pool()
 
 # =============================================================================
 # List VMs
 # =============================================================================
 
+#begin list_all_vms()
 list_all_vms() {
     echo "All AppVMs/DVMs available:"
     echo "--------------------------"
     ls "$QUBES_APPVM_DIR" 2>/dev/null | sort || echo "(none found)"
     echo "--------------------------"
 }
+#end list_all_vms()
 
 # =============================================================================
 # Option 1: Add to Registry
 # =============================================================================
 
+#begin add_entry()
 add_entry() {
     echo ""
     echo "===== ADD VM TO CLONE REGISTRY ====="
@@ -171,6 +321,7 @@ add_entry() {
     echo "${TARGET_NAME}:${SOURCE_VM}:${NET_VM}" >> "$REGISTRY_FILE"
     echo "[+] Added: $TARGET_NAME <- $SOURCE_VM (NetVM: $NET_VM)"
 }
+#end add_entry()
 
 # =============================================================================
 # Option 2: Create All Clones (WITH START/SHUTDOWN FOR REGISTRATION)
@@ -260,7 +411,7 @@ create_all_clones() {
 # =============================================================================
 # Option 2.1: Create Single Registered Clone
 # =============================================================================
-
+# begin create_single_clone() #repeated function #need to be treated...
 create_single_clone() {
     echo ""
     echo "===== CREATE SINGLE REGISTERED CLONE ====="
@@ -369,6 +520,7 @@ create_single_clone() {
         return 1
     fi
 }
+#end create_single_clone()
 
 # =============================================================================
 # Option 3: Add More Entries
@@ -381,7 +533,7 @@ add_more_entries() {
 # =============================================================================
 # Option 4: Remove Entry
 # =============================================================================
-
+#begin remove_entry() #repeated function
 remove_entry() {
     echo ""
     echo "===== REMOVE ENTRY FROM REGISTRY ====="
@@ -405,11 +557,12 @@ remove_entry() {
     sed -i "${NUM}d" "$REGISTRY_FILE"
     echo "[+] Entry removed!"
 }
+#end remove_entry()
 
 # =============================================================================
 # Option 5: Clear Registry
 # =============================================================================
-
+#begin clear_registry() # function repeated
 clear_registry() {
     echo ""
     echo "===== CLEAR ENTIRE REGISTRY ====="
@@ -428,11 +581,13 @@ clear_registry() {
     : > "$REGISTRY_FILE"
     echo "[+] Registry cleared!"
 }
+#end clear_registry()
 
 # =============================================================================
 # Option 6: Delete Specific DVM from zram_pool (DETECTION FIXED)
 # =============================================================================
 
+#begin delete_specific_dvm() #funcion repeated
 delete_specific_dvm() {
     echo ""
     echo "===== DELETE SPECIFIC DVM FROM zram_pool ====="
@@ -496,11 +651,13 @@ delete_specific_dvm() {
     qvm-remove --force "$VM_NAME"
     echo "[+] '$VM_NAME' deleted!"
 }
+#end delete_specific_dvm()
 
 # =============================================================================
 # Option 7: Delete ALL DVMs from zram_pool (DETECTION FIXED)
 # =============================================================================
 
+#begin delete_all_dvms() #funcion repeated
 delete_all_dvms() {
     echo ""
     echo "===== DELETE ALL DVMS FROM zram_pool ====="
@@ -550,11 +707,13 @@ delete_all_dvms() {
         echo "[+] Deleted $count VM(s) from zram_pool!"
     fi
 }
+#end delete_all_dvms()
 
 # =============================================================================
 # Option 8: Check Status
 # =============================================================================
 
+#begin check_status() # funcion repeated
 check_status() {
     echo ""
     echo "===== REGISTRY & zram_pool STATUS ====="
@@ -612,8 +771,7 @@ zramctl
     echo "  Active clones detected: $pool_count"
     echo "  ZRAM pool: $ZRAM_POOL"
 }
-
-
+#end check_status()
 
 
 # =============================================================================
@@ -1194,6 +1352,7 @@ echo "=========================================="
 # CREATE ALL REGISTERED CLONES
 # =============================================================================
 
+#begin create_all_clones()
 create_all_clones() {
     echo ""
     echo "===== CREATE ALL REGISTERED CLONES ====="
@@ -1279,11 +1438,13 @@ echo
     echo "  Start issues:    $start_fail (check volume registration)"
     echo "========================================"
 }
+#end create_all_clones()
 
 # =============================================================================
 # CREATE SINGLE REGISTERED CLONE
 # =============================================================================
 
+#begin create_single_clone()
 create_single_clone() {
     echo ""
     echo "===== CREATE SINGLE REGISTERED CLONE ====="
@@ -1392,11 +1553,13 @@ echo "Disabling swap"
 echo
 
 }
+#end create_single_clone()
 
 # =============================================================================
 # REMOVE ENTRY FROM REGISTRY
 # =============================================================================
 
+#begin remove_entry()
 remove_entry() {
     echo ""
     echo "===== REMOVE ENTRY FROM REGISTRY ====="
@@ -1420,11 +1583,13 @@ remove_entry() {
     sed -i "${NUM}d" "$REGISTRY_FILE"
     echo "[+] Entry removed!"
 }
+#end remove_entry()
 
 # =============================================================================
 # CLEAR ENTIRE REGISTRY
 # =============================================================================
 
+#begin clear_registry()
 clear_registry() {
     echo ""
     echo "===== CLEAR ENTIRE REGISTRY ====="
@@ -1443,11 +1608,13 @@ clear_registry() {
     : > "$REGISTRY_FILE"
     echo "[+] Registry cleared!"
 }
+#end clear_registry()
 
 # =============================================================================
 # DELETE SPECIFIC DVM FROM ZRAM_POOL
 # =============================================================================
 
+#begin delete_specific_dvm()
 delete_specific_dvm() {
     echo ""
     echo "===== DELETE SPECIFIC DVM FROM zram_pool ====="
@@ -1510,11 +1677,13 @@ delete_specific_dvm() {
     qvm-remove --force "$VM_NAME"
     echo "[+] '$VM_NAME' deleted!"
 }
+#end delete_specific_dvm()
 
 # =============================================================================
 # DELETE ALL DVMS FROM ZRAM_POOL
 # =============================================================================
 
+#begin delete_all_dvms()
 delete_all_dvms() {
     echo ""
     echo "===== DELETE ALL DVMS FROM zram_pool ====="
@@ -1563,11 +1732,13 @@ delete_all_dvms() {
         echo "[+] Deleted $count VM(s) from zram_pool!"
     fi
 }
+#end delete_all_dvms()
 
 # =============================================================================
 # CHECK STATUS
 # =============================================================================
 
+#begin check_status()
 check_status() {
     echo ""
     echo "===== REGISTRY & zram_pool STATUS ====="
@@ -1625,6 +1796,7 @@ check_status() {
     echo "  Active clones detected: $pool_count"
     echo "  ZRAM pool: $ZRAM_POOL"
 }
+#end check_status()
 
 # *****************************************************************************
 # *****************************************************************************
@@ -2354,6 +2526,7 @@ system_wide_metadata_randomizer() {
     echo ""
 
     # Function definitions for metadata randomization
+#begin randomize_file()
     randomize_file() {
         local FILE="$1"
         local RAND_DAYS_M=$((RANDOM % 1460 + 365))
@@ -2363,7 +2536,9 @@ system_wide_metadata_randomizer() {
         touch -d "$DATE_M" "$FILE" 2>/dev/null
         touch -d "$DATE_A" "$FILE" 2>/dev/null
     }
+#end randomize_file()
 
+#begin randomize_dir()
     randomize_dir() {
         local DIR="$1"
         local RAND_DAYS_M=$((RANDOM % 1460 + 365))
@@ -2373,6 +2548,7 @@ system_wide_metadata_randomizer() {
         touch -d "$DATE_M" "$DIR" 2>/dev/null
         touch -d "$DATE_A" "$DIR" 2>/dev/null
     }
+#end randomize_dir()
 
     # Ask user for target type
     echo "Select Target Type:"
@@ -2554,6 +2730,7 @@ REPORT_HEADER
     fi
 
     # Helper: Check if path is in protected directories
+#begin is_protected()
     is_protected() {
         local path="$1"
         for protected in "${PROTECTED_DIRS[@]}"; do
@@ -2563,6 +2740,7 @@ REPORT_HEADER
         done
         return 1  # False - not protected
     }
+#end is_protected()
 
     # Process based on MODE
     if [ "$MODE" = "FILE" ]; then
@@ -3209,7 +3387,7 @@ fi
 # =============================================================================
 # MAIN MENU
 # =============================================================================
-
+#begin show_menu_main()
 show_menu_main() {
     clear
     echo ""
@@ -3258,6 +3436,7 @@ show_menu_main() {
     echo ""
     echo "==========================================================="
 }
+#end show_menu_main()
 
 # =============================================================================
 # MAIN LOOP
