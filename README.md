@@ -289,30 +289,6 @@ Found in:
 /tmp/dom0-content-24P0OU.tmp                                                  1 occurrence
 ```
 
----
-
-## Proposed Solutions for Hybrid Amnesic + Persistent Qubes
-
-| Issue | Proposed Fix | Difficulty |
-|-------|--------------|------------|
-| `/etc/libvirt/libxl/*.xml` | Dynamic tmpfs overlay on boot | Medium |
-| `/etc/qubes/backup/` | Exclude from backup or tmpfs mount | Low |
-| `/home/your_user/.local/share/*` | Runtime cleanup script | Low |
-| `/run/udev/data/` | Udev rule filtering or tmpfs | Hard |
-| VM UUID leaks | UUID rotation per session | Medium |
-| `backup_timestamp` leaks | Manual wipe or randomization | Low |
-| Desktop menu entries | Auto-delete on VM removal | Low |
-| `/var/lib/qubes/qubes.xml` | Read-only bind mount or tmpfs copy | Medium |
-
-### Research Direction
-
-1. **Full dom0 Live Mode**: Complete `/var/lib/qubes` tmpfs with overlayfs
-2. **Metadata Rotation**: Automatic UUID + timestamp reset on each session
-3. **Forensic Hunter Integration**: Post-session automated cleanup
-4. **Hybrid Flag System**: Per-VM amnesic/persistent toggle without reboot
-
----
-
 *Research ongoing. Contributions and improvements welcome.*
 
 # Doe monero para nos ajudar: (donate XMR)
