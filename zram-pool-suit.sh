@@ -2281,7 +2281,74 @@ disable_bash_history()
     HISTSIZE=0
     echo "" > /root/.bash_history 2>/dev/null
     echo "" > "/home/$user_dom0/.bash_history" 2>/dev/null
-echo "All .bash_history disabled!"
+
+# Root .bashrc handling
+echo "[*] Processing /root/.bashrc..."
+
+# Check if DISABLE or ENABLE block exists in root .bashrc
+if grep -q "# DISABLE BASH HISTORY - PERMANENT\|# ENABLE BASH HISTORY - PERMANENT" /root/.bashrc; then
+    echo "[*] Found existing block in root .bashrc, removing..."
+    # Remove any existing DISABLE or ENABLE block (from start marker to end marker)
+    sed -i '/# DISABLE BASH HISTORY - PERMANENT/,/# PROMPT_COMMAND unset/d' /root/.bashrc
+    sed -i '/# ENABLE BASH HISTORY - PERMANENT/,/# shopt -s histappend/d' /root/.bashrc
+fi
+
+# Add blank line separator, then add DISABLE block
+echo "" >> /root/.bashrc
+cat >> /root/.bashrc << 'EOF'
+
+# DISABLE BASH HISTORY - PERMANENT
+# Prevent bash history from being written to disk
+# This overrides any previous HISTFILE settings
+export HISTFILE=/dev/null
+export HISTSIZE=0
+export HISTFILESIZE=0
+shopt -u histappend
+PROMPT_COMMAND="history -c; history -d \$HISTCMD"
+EOF
+
+echo "[+] Root .bashrc updated"
+
+
+# User .bashrc handling
+echo "[*] Processing /home/$user_dom0/.bashrc..."
+
+# Check if DISABLE or ENABLE block exists in user .bashrc
+if grep -q "# DISABLE BASH HISTORY - PERMANENT\|# ENABLE BASH HISTORY - PERMANENT" "/home/$user_dom0/.bashrc"; then
+    echo "[*] Found existing block in user .bashrc, removing..."
+    # Remove any existing DISABLE or ENABLE block
+    sed -i '/# DISABLE BASH HISTORY - PERMANENT/,/# PROMPT_COMMAND unset/d' "/home/$user_dom0/.bashrc"
+    sed -i '/# ENABLE BASH HISTORY - PERMANENT/,/# shopt -s histappend/d' "/home/$user_dom0/.bashrc"
+fi
+
+# Add blank line separator, then add DISABLE block
+echo "" >> "/home/$user_dom0/.bashrc"
+cat >> "/home/$user_dom0/.bashrc" << 'EOF'
+
+# DISABLE BASH HISTORY - PERMANENT
+# Prevent bash history from being written to disk
+# This overrides any previous HISTFILE settings
+export HISTFILE=/dev/null
+export HISTSIZE=0
+export HISTFILESIZE=0
+shopt -u histappend
+PROMPT_COMMAND="history -c; history -d \$HISTCMD"
+EOF
+
+echo "[+] User '$user_dom0' .bashrc updated"
+
+
+# Clear current session history
+unset HISTFILE
+export HISTSIZE=0
+export HISTFILESIZE=0
+history -c
+echo "" > /root/.bash_history 2>/dev/null
+echo "" > "/home/$user_dom0/.bash_history" 2>/dev/null
+
+echo "[OK] Bash history disabled for new sessions"
+echo "     Current session cleared."
+
 echo "cat /home/$user_dom0/.bash_history"
 cat /home/$user_dom0/.bash_history
 echo
@@ -2302,7 +2369,63 @@ enable_bash_history()
     echo "export HISTFILE=~/.bash_history
 export HISTSIZE=1000
 export HISTFILESIZE=2000" >> "/home/$user_dom0/.bashrc"
-echo "All .bash_history enabled!"
+
+# Root .bashrc handling
+echo "[*] Processing /root/.bashrc..."
+
+# Check if DISABLE or ENABLE block exists in root .bashrc
+if grep -q "# DISABLE BASH HISTORY - PERMANENT\|# ENABLE BASH HISTORY - PERMANENT" /root/.bashrc; then
+    echo "[*] Found existing block in root .bashrc, removing..."
+    # Remove any existing DISABLE or ENABLE block (from start marker to end marker)
+    sed -i '/# DISABLE BASH HISTORY - PERMANENT/,/# PROMPT_COMMAND unset/d' /root/.bashrc
+    sed -i '/# ENABLE BASH HISTORY - PERMANENT/,/# shopt -s histappend/d' /root/.bashrc
+fi
+
+# Add blank line separator, then add ENABLE block
+echo "" >> /root/.bashrc
+cat >> /root/.bashrc << 'EOF'
+
+# ENABLE BASH HISTORY - PERMANENT
+# Restore default bash history settings
+export HISTFILE=~/.bash_history
+export HISTSIZE=1000
+export HISTFILESIZE=2000
+shopt -s histappend
+# PROMPT_COMMAND unset (remove limitation)
+EOF
+
+echo "[+] Root .bashrc updated with ENABLE block"
+
+
+# User .bashrc handling
+echo "[*] Processing /home/$user_dom0/.bashrc..."
+
+# Check if DISABLE or ENABLE block exists in user .bashrc
+if grep -q "# DISABLE BASH HISTORY - PERMANENT\|# ENABLE BASH HISTORY - PERMANENT" "/home/$user_dom0/.bashrc"; then
+    echo "[*] Found existing block in user .bashrc, removing..."
+    # Remove any existing DISABLE or ENABLE block
+    sed -i '/# DISABLE BASH HISTORY - PERMANENT/,/# PROMPT_COMMAND unset/d' "/home/$user_dom0/.bashrc"
+    sed -i '/# ENABLE BASH HISTORY - PERMANENT/,/# shopt -s histappend/d' "/home/$user_dom0/.bashrc"
+fi
+
+# Add blank line separator, then add ENABLE block
+echo "" >> "/home/$user_dom0/.bashrc"
+cat >> "/home/$user_dom0/.bashrc" << 'EOF'
+
+# ENABLE BASH HISTORY - PERMANENT
+# Restore default bash history settings
+export HISTFILE=~/.bash_history
+export HISTSIZE=1000
+export HISTFILESIZE=2000
+shopt -s histappend
+# PROMPT_COMMAND unset (remove limitation)
+EOF
+
+echo "[+] User '$user_dom0' .bashrc updated."
+
+echo "[OK] Bash history re-enabled for new sessions"
+echo "     Logout and login again to apply changes."
+
 echo "cat /home/$user_dom0/.bash_history"
 cat /home/$user_dom0/.bash_history
 echo
