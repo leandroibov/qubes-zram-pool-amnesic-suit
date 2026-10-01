@@ -1,10 +1,10 @@
-# Qubes ZRAM DVM Clone Manager - Function Diagram
+# Qubes ZRAM POOL SUIT Manager - Function Diagram
 
 ## Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                   SECURITY & AMNESIC VM MANAGEMENT SYSTEM                    │
+│                   SECURITY & AMNESIC VM MANAGEMENT SYSTEM                   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -139,18 +139,18 @@
 ┌────────────────────────────────────────────┐
 │          HELPER FUNCTIONS                  │
 ├────────────────────────────────────────────┤
-│  get_vms_in_zram_pool()                   │
-│  └─► Lists VMs in pool (4 methods):       │
-│      ├── Method 1: qvm-volume list        │
-│      ├── Method 2: /dev/zram_vg devices   │
-│      ├── Method 3: findmnt (placeholder)  │
-│      └── Method 4: qvm-pool info          │
-│                                           │
-│  is_vm_in_zram_pool()                     │
-│  └─► Boolean check for single VM          │
-│                                           │
-│  list_all_vms()                           │
-│  └─► List all AppVMs/DVMs                 │
+│  get_vms_in_zram_pool()                    │
+│  └─► Lists VMs in pool (4 methods):        │
+│      ├── Method 1: qvm-volume list         │
+│      ├── Method 2: /dev/zram_vg devices    │
+│      ├── Method 3: findmnt (placeholder)   │
+│      └── Method 4: qvm-pool info           │
+│                                            │
+│  is_vm_in_zram_pool()                      │
+│  └─► Boolean check for single VM           │
+│                                            │
+│  list_all_vms()                            │
+│  └─► List all AppVMs/DVMs                  │
 └────────────────────────────────────────────┘
 ```
 
@@ -162,10 +162,10 @@
 ┌────────────────────────────────────────────┐
 │          MEMORY MANAGEMENT                 │
 ├────────────────────────────────────────────┤
-│  dom0-ram-manager()    ► Set GRUB limits  │
-│  restore_grub_default_4g()► Restore config│
-│  swap_on()             ► Enable swap      │
-│  swap_off()            ► Disable swap     │
+│  dom0-ram-manager()    ► Set GRUB limits   │
+│  restore_grub_default_4g()► Restore config │
+│  swap_on()             ► Enable swap       │
+│  swap_off()            ► Disable swap      │
 └────────────────────────────────────────────┘
 ```
 
@@ -177,24 +177,24 @@
 ┌────────────────────────────────────────────┐
 │        DOM0 METADATA PROTECTION            │
 ├────────────────────────────────────────────┤
-│  dom0_tmpfs_metadata()                    │
-│  └─► Add tmpfs mounts to fstab:           │
-│      ├── /var/log (50M)                   │
-│      ├── /etc/lvm/archive (250M)          │
-│      ├── /etc/lvm/backup (250M)           │
-│      └── /var/lib/qubes/backup (20M)      │
-│                                           │
-│  revert_tmpfs_optimization()              │
-│  └─► Remove all tmpfs entries             │
-│                                           │
-│  get_user_dom0()                          │
-│  └─► Validate dom0 username               │
-│                                           │
-│  disable_bash_history()                   │
-│  └─► Clear & disable bash history         │
-│                                           │
-│  enable_bash_history()                    │
-│  └─► Restore bash history                 │
+│  dom0_tmpfs_metadata()                     │
+│  └─► Add tmpfs mounts to fstab:            │
+│      ├── /var/log (50M)                    │
+│      ├── /etc/lvm/archive (250M)           │
+│      ├── /etc/lvm/backup (250M)            │
+│      └── /var/lib/qubes/backup (20M)       │
+│                                            │
+│  revert_tmpfs_optimization()               │
+│  └─► Remove all tmpfs entries              │
+│                                            │
+│  get_user_dom0()                           │
+│  └─► Validate dom0 username                │
+│                                            │
+│  disable_bash_history()                    │
+│  └─► Clear & disable bash history          │
+│                                            │
+│  enable_bash_history()                     │
+│  └─► Restore bash history                  │
 └────────────────────────────────────────────┘
 ```
 
@@ -224,7 +224,7 @@
 │                         WHILE TRUE LOOP                             │
 │                                                                     │
 │  User Input (0-22) ───► Route to Function Section                   │
-│  Option 0 (Exit) ─────► Terminate Program                          │
+│  Option 0 (Exit) ─────► Terminate Program                           │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
