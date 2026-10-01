@@ -193,7 +193,6 @@ Scan checked:
 
 ### 📁 `/home/your_user/`
 ```
-/home/your_user/whonix-tails-failsafe-rastros.txt          23 occurrences
 /home/your_user/.xsession-errors                           35 occurrences
 /home/your_user/.local/state/wireplumber/stream-properties   1 occurrence
 ```
