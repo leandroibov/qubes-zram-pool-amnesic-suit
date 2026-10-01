@@ -191,14 +191,14 @@ Scan checked:
 /etc/qubes/backup/qubes-manager-backup.conf            1 occurrence
 ```
 
-### 📁 `/homeyour_user`
+### 📁 `/home/your_user/`
 ```
-/homeyour_userwhonix-tails-failsafe-rastros.txt          23 occurrences
-/homeyour_user.xsession-errors                           35 occurrences
-/homeyour_user.local/state/wireplumber/stream-properties   1 occurrence
+/home/your_user/whonix-tails-failsafe-rastros.txt          23 occurrences
+/home/your_user/.xsession-errors                           35 occurrences
+/home/your_user/.local/state/wireplumber/stream-properties   1 occurrence
 ```
 
-### 📁 `/homeyour_user.local/share/applications/` **(38 .desktop FILES)**
+### 📁 `/home/your_user/.local/share/applications/` **(38 .desktop FILES)**
 ```
 org.qubes-os.vm._whonix_dtails_dfailsafe.pidgin.desktop                 6
 org.qubes-os.vm._whonix_dtails_dfailsafe_dbk.org.kde.kleopatra.desktop  6
@@ -207,13 +207,13 @@ org.qubes-os.vm._whonix_dtails_dfailsafe_dbk.org.onionshare.desktop     6
 ```
 **(Total: ~240 occurrences)**
 
-### 📁 `/homeyour_user.local/share/desktop-directories/`
+### 📁 `/home/your_user/.local/share/desktop-directories/`
 ```
 qubes-vm-directory_whonix_dtails_dfailsafe_dbk.directory   1
 qules-vm-directory_whonix_dtails_dfailsafe.directory       1
 ```
 
-### 📁 `/homeyour_user.local/share/qubes-appmenus/` **(52 FILES)**
+### 📁 `/home/your_user/.local/share/qubes-appmenus/` **(52 FILES)**
 ```
 whonix-tails-failsafe-bk/apps/*.desktop                   (28 files)
 whonix-tails-failsafe/apps/*.desktop                      (24 files)
@@ -255,14 +255,14 @@ whonix-tails-failsafe/apps/*.desktop                      (24 files)
 | **`/var/lib/qubes/`** | 1 | 8 | ⚠️ Partial |
 | **`/etc/libvirt/libxl/`** | 1 | 2 | ⚠️ **Not handled** |
 | **`/etc/qubes/backup/`** | 1 | 1 | ⚠️ **Not handled** |
-| **`/homeyour_user.local/share/applications/`** | 38 | ~240 | ⚠️ **Not handled** |
-| **`/homeyour_user.local/share/qubes-appmenus/`** | 52 | ~300 | ⚠️ **Not handled** |
-| **`/homeyour_user.local/share/desktop-directories/`** | 2 | 2 | ⚠️ **Not handled** |
+| **`/home/your_user/.local/share/applications/`** | 38 | ~240 | ⚠️ **Not handled** |
+| **`/home/your_user/.local/share/qubes-appmenus/`** | 52 | ~300 | ⚠️ **Not handled** |
+| **`/home/your_user/.local/share/desktop-directories/`** | 2 | 2 | ⚠️ **Not handled** |
 | **`/etc/systemd/`** | 1 | 1 | ⚠️ **Not handled** |
 | **`/etc/ephemeral-`** | 1 | 1 | ⚠️ **Not handled** |
 | **`/run/udev/data/`** | 5 | 10 | ⚠️ **Not handled** |
 | **`/tmp/`** | 1 | 51 | ⚠️ Volatile (RAM) |
-| **`/homeyour_user.xsession-errors`** | 1 | 35 | ⚠️ **Not handled** |
+| **`/home/your_user/.xsession-errors`** | 1 | 35 | ⚠️ **Not handled** |
 | **TOTAL** | **~455+** | **~1270+** | |
 
 ---
@@ -286,7 +286,7 @@ Found in:
 ```
 /var/lib/qubes/qubes.xml                                                      2 occurrences
 /var/lib/qubes/backup/qubes-*.xml                                             100+ occurrences
-/homeyour_user998992877738-rastros.txt                                           2 occurrences
+/home/your_user/998992877738-rastros.txt                                           2 occurrences
 /tmp/dom0-content-24P0OU.tmp                                                  1 occurrence
 ```
 
@@ -298,7 +298,7 @@ Found in:
 |-------|--------------|------------|
 | `/etc/libvirt/libxl/*.xml` | Dynamic tmpfs overlay on boot | Medium |
 | `/etc/qubes/backup/` | Exclude from backup or tmpfs mount | Low |
-| `/homeyour_user.local/share/*` | Runtime cleanup script | Low |
+| `/home/your_user/.local/share/*` | Runtime cleanup script | Low |
 | `/run/udev/data/` | Udev rule filtering or tmpfs | Hard |
 | VM UUID leaks | UUID rotation per session | Medium |
 | `backup_timestamp` leaks | Manual wipe or randomization | Low |
