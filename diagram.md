@@ -32,7 +32,7 @@
 │     zram_pool()        │──► Creates amnesic storage pool
 │                        │
 │  ┌──────────────────┐  │
-│  │zram-pool-create.sh│  │
+│  │zram-pool-create.sh  │
 │  └──────────────────┘  │
 └────────────────────────┘
              │
