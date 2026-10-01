@@ -61,7 +61,7 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 | 3 | **1** | Create `zram_pool` (ZRAM amnesic pool for VMs) |
 | 4 | **3** | Register VMs in clone registry (or clone manually) |
 | 5 | **4** | Create all registered clones. Auto-disables swap + `.bash_history` per session |
-| 6 | **17** | After use, randomize timestamps on unprotected directories (1 iteration recommended; optionally 5–10) |
+| 6 | **17** | After use, randomize timestamps on unprotected directories (Ideal is 5-10 iteration) |
 
 ---
 
