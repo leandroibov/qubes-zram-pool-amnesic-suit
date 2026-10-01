@@ -106,7 +106,7 @@ You can update dom0, VMs, templates, create additional templates, AppVMs, DVMs, 
 
 1. Configure anti-cold-boot attack modules in dom0 via DRACUT
 2. Boot dom0 100% in RAM
-3. Place AppVMs inside `/var/lib/qubes` in dom0 — they'll reside 100% in RAM
+3. Place AppVMs inside `varlibqubes` pool in dom0 — they'll reside 100% in RAM
 
 All logs, metadata, and timestamps are annihilated at shutdown with anti-cold-boot protection configured!
 
