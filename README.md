@@ -9,12 +9,12 @@
 This script provides **partial anti-forensic protection**. To achieve **100% anti-forensic security**, the following dom0 directories must be mounted in `tmpfs`:
 
 | Working (tmpfs compatible) | Breaking (cannot use tmpfs) |
-|----------------------------|---------------------------|
+|----------------------------|-----------------------------|
 | `/var/log`                 | `/etc/libvirt/libxl`        |
 | `/etc/lvm/archive`         | `/etc/qubes/backup`         |
 | `/etc/lvm/backup`          | `~/.local/share`            |
 |                            | `/var/lib/qubes`            |
-|                            | `/etc/systemd/system`       |
+|----------------------------|-----------------------------|
 
 The script successfully mounts the first three without bugs. However, the remaining directories store critical VM metadata (timestamps, creation/modification/access dates) that can correlate online activities even if not primary forensic data — a potential vulnerability for physical adversaries with dom0 password access.
 
@@ -171,9 +171,6 @@ Scan checked:
 
 ## 🔴 OTHER CRITICAL FOLDERS - **NOT HANDLED**
 
-### 📁 `/etc/systemd/system/`
-```
-/etc/systemd/system/rw.service                         1 occurrence
 ```
 
 ### 📁 `/etc/ephemeral-antiforensic.state`
@@ -257,7 +254,6 @@ whonix-tails-failsafe/apps/*.desktop                      (24 files)
 | **`/home/your_user/.local/share/applications/`** | 38 | ~240 | ⚠️ **Not handled** |
 | **`/home/your_user/.local/share/qubes-appmenus/`** | 52 | ~300 | ⚠️ **Not handled** |
 | **`/home/your_user/.local/share/desktop-directories/`** | 2 | 2 | ⚠️ **Not handled** |
-| **`/etc/systemd/`** | 1 | 1 | ⚠️ **Not handled** |
 | **`/etc/ephemeral-`** | 1 | 1 | ⚠️ **Not handled** |
 | **`/run/udev/data/`** | 5 | 10 | ⚠️ **Not handled** |
 | **`/tmp/`** | 1 | 51 | ⚠️ Volatile (RAM) |
