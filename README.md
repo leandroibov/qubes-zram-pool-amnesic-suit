@@ -174,11 +174,6 @@ Scan checked:
 
 ```
 
-### 📁 `/etc/ephemeral-antiforensic.state`
-```
-/etc/ephemeral-antiforensic.state                      1 occurrence
-```
-
 ### 📁 `/etc/libvirt/libxl/`
 ```
 /etc/libvirt/libxl/whonix-tails-failsafe.xml           2 occurrences
@@ -255,7 +250,6 @@ whonix-tails-failsafe/apps/*.desktop                      (24 files)
 | **`/home/your_user/.local/share/applications/`** | 38 | ~240 | ⚠️ **Not handled** |
 | **`/home/your_user/.local/share/qubes-appmenus/`** | 52 | ~300 | ⚠️ **Not handled** |
 | **`/home/your_user/.local/share/desktop-directories/`** | 2 | 2 | ⚠️ **Not handled** |
-| **`/etc/ephemeral-`** | 1 | 1 | ⚠️ **Not handled** |
 | **`/run/udev/data/`** | 5 | 10 | ⚠️ **Not handled** |
 | **`/tmp/`** | 1 | 51 | ⚠️ Volatile (RAM) |
 | **`/home/your_user/.xsession-errors`** | 1 | 35 | ⚠️ **Not handled** |
