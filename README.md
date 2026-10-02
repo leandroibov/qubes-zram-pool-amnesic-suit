@@ -14,6 +14,7 @@ This script provides **partial anti-forensic protection**. To achieve **100% ant
 | `/etc/lvm/archive`         | `/etc/qubes/backup`         |
 | `/etc/lvm/backup`          | `~/.local/share`            |
 |                            | `/var/lib/qubes`            |
+|                            | `~/`                        |
 |----------------------------|-----------------------------|
 
 The script successfully mounts the first three without bugs. However, the remaining directories store critical VM metadata (timestamps, creation/modification/access dates) that can correlate online activities even if not primary forensic data — a potential vulnerability for physical adversaries with dom0 password access.
