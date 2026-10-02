@@ -54,6 +54,7 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 ---
 
 ## ⚙️ Recommended Setup Order
+#### Always use AppVMs, not Disposable VM templates inside zram_pool — this leaves important metadata on SSD even when inside zram_pool (explained further in this README.md)
 
 | Step | Option | Action |
 |------|--------|--------|
