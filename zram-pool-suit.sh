@@ -9,9 +9,20 @@
 #BUGS AND TREATMENT
 #to repair or improve
 #repeated functions, look for #2 repeated
-# BUG: remove_zram_pool() does not detect if zram_pool is already removed
-#      Still executes removal commands regardless of pool status,
-#      but the program continues working normally despite the errors
+# BUG: Named disposables created from Disposable Templates (DVM) in zram_pool
+# generate snapshots in SSD outside zram_pool and are not amnesic
+# See example for disp7669 created from one DVM inside zram_pool
+# /dev/qubes_dom0/vm-disp7669-root-snap
+# /dev/mapper/qubes_dom0-vm--disp7669--root--snap
+# Require cancel snapshot generation in /dev/qubes_dom0/, research will study how to do it!
+# It is necessary to use AppVMs in zram_pool and snapshots will be inside zram_pool
+# See example AppVM torbrowser cloned to zram_pool
+# /dev/zram_vg/vm-torbrowser-private #está na RAM
+# /dev/zram_vg/vm-torbrowser-private-1790949900-back
+# /dev/mapper/zram_vg-vm--torbrowser--private
+# /dev/mapper/zram_vg-vm--torbrowser--private--1790949900
+#commented till solution
+#4 times, look for here: qvm-prefs "$TARGET" template_for_dispvms True
 
 # Global variables block
 
@@ -368,7 +379,9 @@ create_all_clones() {
                 echo "[i] NetVM set to: $NET"
             fi
             
-            qvm-prefs "$TARGET" template_for_dispvms True
+            #qvm-prefs "$TARGET" template_for_dispvms True
+ #deactivated temporary!
+ #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
             
             # Start and shutdown to register volumes in LVM
             echo "[*] Starting VM to register volumes in zram_pool..."
@@ -479,8 +492,10 @@ create_single_clone() {
         fi
         
         # Step 3: Mark as DVM Template
-        qvm-prefs "$TARGET" template_for_dispvms True
-        echo "[i] Marked as DVM Template for Disposable VMs"
+        #qvm-prefs "$TARGET" template_for_dispvms True
+ #deactivated temporary!
+ #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
+        #echo "[i] Marked as DVM Template for Disposable VMs"
         
         # Step 4: Start and shutdown to register volumes in LVM
         echo ""
@@ -593,7 +608,7 @@ clear_registry() {
 #begin delete_specific_dvm() #funcion repeated
 delete_specific_dvm() {
     echo ""
-    echo "===== DELETE SPECIFIC DVM FROM zram_pool ====="
+    echo "===== DELETE SPECIFIC DVM/APPVM FROM zram_pool ====="
     
     echo "Detecting VMs in zram_pool using multiple methods..."
     echo "------------------------------------------------------"
@@ -616,7 +631,7 @@ delete_specific_dvm() {
     echo "------------------------------------------------------"
     echo ""
     
-    read -p "Enter DVM name to delete: " VM_NAME
+    read -p "Enter DVM/APPVM name to delete: " VM_NAME
     
     if [[ -z "$VM_NAME" ]]; then
         echo "[!] ERROR: VM name cannot be empty!"
@@ -663,7 +678,7 @@ delete_specific_dvm() {
 #begin delete_all_dvms() #funcion repeated
 delete_all_dvms() {
     echo ""
-    echo "===== DELETE ALL DVMS FROM zram_pool ====="
+    echo "===== DELETE ALL DVM/APPVM FROM zram_pool ====="
     
     echo "Detecting VMs in zram_pool using multiple methods..."
     echo "------------------------------------------------------"
@@ -682,7 +697,7 @@ delete_all_dvms() {
     echo "------------------------------------------------------"
     echo ""
     
-    read -p "DELETE ALL THESE DVMS? (yes/no): " CONFIRM
+    read -p "DELETE ALL THESE DVMs/APPVMs? (yes/no): " CONFIRM
     if [[ "$CONFIRM" != "yes" ]]; then
         echo "[!] Cancelled!"
         return 1
@@ -765,7 +780,7 @@ check_status() {
     echo "------------------------------"
     echo ""
 
-echo "ZRAM pool size and DVM usage"
+echo "ZRAM pool size and DVM/APPVM usage"
 zramctl
     echo
 
@@ -983,7 +998,7 @@ sed -i 's/ZRAM_SIZE="\$zram_pool_size"/ZRAM_SIZE="'$zram_pool_size'"/' /usr/loca
 
 sudo chmod +x /usr/local/bin/zram-pool-create.sh
 echo "ZRAM pool activated"
-echo "Add only DVMs to it for amnesic anti-forensic mode"
+echo "Add only DVMs/APPVMs to it for amnesic anti-forensic mode"
 echo "AppVMs do not work — never create an AppVM inside zram_pool"
 sudo systemctl daemon-reload
 sudo systemctl enable --now zram-pool.service
@@ -1141,18 +1156,29 @@ find "${LOGDIR}/qubes/" -maxdepth 1 -type f -name '*.log.old' -delete
 EOF
 
 sudo chmod +x /usr/local/bin/clean.sh
-echo "Turn on amnesic logs and metadata in dom0 for zram-pool DVMs"
+echo "Turn on amnesic logs and metadata in dom0 for zram-pool DVMs/APPVMs"
 sudo systemctl daemon-reload
 sudo systemctl enable clean.service
 }
 
 
+
+
 remove_zram_pool()
 {
+# Check if zram_pool exists
+if ! qvm-pool list 2>/dev/null | grep -q "zram_pool"; then
+    echo "[!] ERROR: zram_pool not found!"
+    echo "[i] Nothing to remove."
+    return 1
+fi
+
     echo "==========================================================="
     echo "  WARNING: ZRAM POOL DELETION"
     echo "==========================================================="
     echo ""
+
+echo "[+] zram_pool found, continuing..."
     echo "This will DELETE:"
     echo "  - The entire zram_pool volume group"
     echo "  - ALL DVMs and AppVMs stored in zram_pool"
@@ -1212,7 +1238,7 @@ done
 echo "[+] zram pool completely removed. Reboot to clear all traces from memory."
 }
 
-# Function: Check ZRAM Pool and DVM Memory Status
+# Function: Check ZRAM Pool and DVM/APPVM Memory Status
 check_zram_amnesic_status()
 {
 echo "=========================================="
@@ -1240,9 +1266,9 @@ echo "zram_pool details:"
 qvm-pool info zram_pool 2>/dev/null || echo "  [!] zram_pool not found or not accessible"
 echo ""
 
-# 3. DVM VOLUME LOCATION CHECK
-echo "========== 3. DVM VOLUME LOCATION CHECK =========="
-echo "All DVMs and their volume locations:"
+# 3. DVM/APPVM VOLUME LOCATION CHECK
+echo "========== 3. DVM/APPVM VOLUME LOCATION CHECK =========="
+echo "All DVMs/APPVMs and their volume locations:"
 for vm in $(qvm-ls --raw-list 2>/dev/null); do
     volumes=$(qvm-volume list "$vm" 2>/dev/null | grep "root\|private" | awk '{print $2}' | tr '\n' ' ')
     echo "  $vm: $volumes"
@@ -1338,7 +1364,7 @@ echo "Total issues found: $errors"
 echo ""
 
 if [ "$errors" -eq 0 ]; then
-    echo "[SUCCESS] All checks passed! Your DVMs should be fully amnesic."
+    echo "[SUCCESS] All checks passed! Your DVMs/APPVMs should be fully amnesic."
 else
     echo "[WARNING] Some checks failed. Review the output above."
 fi
@@ -1394,7 +1420,9 @@ create_all_clones() {
                 echo "[i] NetVM set to: $NET"
             fi
             
-            qvm-prefs "$TARGET" template_for_dispvms True
+            #qvm-prefs "$TARGET" template_for_dispvms True
+ #deactivated temporary!
+ #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
             
             echo "[*] Starting VM to register volumes in zram_pool..."
             if qvm-start "$TARGET" 2>/dev/null; then
@@ -1506,8 +1534,10 @@ create_single_clone() {
             echo "[i] NetVM set to: $NET"
         fi
         
-        qvm-prefs "$TARGET" template_for_dispvms True
-        echo "[i] Marked as DVM Template for Disposable VMs"
+        #qvm-prefs "$TARGET" template_for_dispvms True
+ #deactivated temporary!
+ #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
+        #echo "[i] Marked as DVM Template for Disposable VMs"
         
         echo ""
         echo "[*] Starting VM to register volumes in zram_pool..."
@@ -1620,7 +1650,7 @@ clear_registry() {
 #begin delete_specific_dvm()
 delete_specific_dvm() {
     echo ""
-    echo "===== DELETE SPECIFIC DVM FROM zram_pool ====="
+    echo "===== DELETE SPECIFIC DVM/APPVM FROM zram_pool ====="
     
     echo "Detecting VMs in zram_pool using multiple methods..."
     echo "------------------------------------------------------"
@@ -1643,7 +1673,7 @@ delete_specific_dvm() {
     echo "------------------------------------------------------"
     echo ""
     
-    read -p "Enter DVM name to delete: " VM_NAME
+    read -p "Enter DVM/APPVM name to delete: " VM_NAME
     
     if [[ -z "$VM_NAME" ]]; then
         echo "[!] ERROR: VM name cannot be empty!"
@@ -1689,7 +1719,7 @@ delete_specific_dvm() {
 #begin delete_all_dvms()
 delete_all_dvms() {
     echo ""
-    echo "===== DELETE ALL DVMS FROM zram_pool ====="
+    echo "===== DELETE ALL DVMs/APPVMs FROM zram_pool ====="
     
     echo "Detecting VMs in zram_pool using multiple methods..."
     echo "------------------------------------------------------"
@@ -1708,7 +1738,7 @@ delete_all_dvms() {
     echo "------------------------------------------------------"
     echo ""
     
-    read -p "DELETE ALL THESE DVMS? (yes/no): " CONFIRM
+    read -p "DELETE ALL THESE DVMs/APPVMs? (yes/no): " CONFIRM
     if [[ "$CONFIRM" != "yes" ]]; then
         echo "[!] Cancelled!"
         return 1
@@ -1790,7 +1820,7 @@ check_status() {
     echo "------------------------------"
     echo ""
     
-    echo "ZRAM pool size and DVM usage:"
+    echo "ZRAM pool size and DVM/APPVM usage:"
     zramctl
     echo
     
@@ -3546,21 +3576,21 @@ show_menu_main() {
     clear
     echo ""
     echo "==========================================================="
-    echo "               QUBES ZRAM DVM CLONE MANAGER"
+    echo "               QUBES ZRAM DVM/APPVM CLONE MANAGER"
     echo "==========================================================="
     echo ""
     echo "  --- ZRAM POOL (ANTI-FORENSIC) ---"
-    echo "   1) Create ZRAM Pool for amnesic DVMs and appVMs"
+    echo "   1) Create ZRAM Pool for amnesic DVM/APPVM and appVMs"
     echo "   2) Remove ZRAM Pool and Related Artifacts"
     echo ""
-    echo "  --- DVM CLONE MANAGER (ZRAM_POOL) ---"
+    echo "  --- DVM/APPVM CLONE MANAGER (ZRAM_POOL) ---"
     echo "   3) Add VM to clone registry"
     echo "   4) Create all registered clones (to zram_pool)"
     echo "   5) Create one registered clone (to zram_pool)"
     echo "   6) Remove entry from registry"
     echo "   7) Clear entire registry"
-    echo "   8) Delete specific DVM from zram_pool"
-    echo "   9) Delete ALL DVMs from zram_pool"
+    echo "   8) Delete specific DVM/APPVM from zram_pool"
+    echo "   9) Delete ALL DVMs/APPVMs from zram_pool"
     echo "  10) Check registry & zram_pool status"
     echo ""
     echo "  --- ANTI-COLD BOOT ATTACK ---"
