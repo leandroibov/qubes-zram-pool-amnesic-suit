@@ -17,7 +17,7 @@ This script provides **partial anti-forensic protection**. To achieve **100% ant
 |                            | `~/`                        |
 |----------------------------|-----------------------------|
 
-The script successfully mounts the first three without bugs. However, the remaining directories store critical VM metadata (timestamps, creation/modification/access dates) that can correlate online activities even if not primary forensic data — a potential vulnerability for physical adversaries with dom0 password access.
+The script successfully mounts the first three without bugs. However, the remaining directories store critical VM metadata (timestamps, creation/modification/access dates) that can correlate online activities even if not primary forensic data  —  a potential vulnerability for physical adversaries with dom0 password access.
 
 Additional protections:
 - ✅ `.bash_history` disabled (root + user)
@@ -54,12 +54,12 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 ---
 
 ## ⚙️ Recommended Setup Order
-#### Always use AppVMs, not Disposable VM templates inside zram_pool — this leaves important metadata on SSD even when inside zram_pool (explained further in this README.md)
+#### Always use AppVMs, not Disposable VM templates inside zram_pool  —  this leaves important metadata on SSD even when inside zram_pool (explained further in this README.md)
 
 | Step | Option | Action |
 |------|--------|--------|
 | 1️⃣ | **13** | Enable `tmpfs` mounts for `/var/log`, `/etc/lvm/archive`, `/etc/lvm/backup`. **Reboot required.** |
-| 2 | **11** | Anti Cold Boot — in the keyboard settings, create a shortcut such as `Control + Alt + Space` for `halt -p` to trigger a rapid shutdown in the event of a physical attack or imminent threat. **Reboot required.** |
+| 2 | **11** | Anti Cold Boot  —  in the keyboard settings, create a shortcut such as `Control + Alt + Space` for `halt -p` to trigger a rapid shutdown in the event of a physical attack or imminent threat. **Reboot required.** |
 | 3 | **1** | Create `zram_pool` (ZRAM amnesic pool for VMs) |
 | 4 | **3** | Register VMs in clone registry (or clone manually) |
 | 5 | **4** | Create all registered clones. Auto-disables swap + `.bash_history` per session |
@@ -67,7 +67,7 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 
 ## ⚠️ Important Note: Registry Metadata Exposure
 
-Using **Option 4** to generate AppVMs from the registry is more convenient but will produce significantly more metadata in directories not yet supported for tmpfs mounting. The registry records VM names being cloned to zram_pool—a forensic adversary will have access to this metadata!
+Using **Option 4** to generate AppVMs from the registry is more convenient but will produce significantly more metadata in directories not yet supported for tmpfs mounting. The registry records VM names being cloned to zram_pool — a forensic adversary will have access to this metadata!
 
 ### 🎯 Ideal (But More Labor-Intensive) Method
 
@@ -81,7 +81,7 @@ qvm-clone -P=zram_pool another-appvm disp5478
 
 Use these `dispXXXX` names for your OpSec operations. For example, if you create `disp2455` and `disp5478`, the metadata and logs still written to disk will show only `disp5478` and `disp2455`. This **camouflages the metadata** about which type of AppVM you used and what it contained!
 
-This is an advantage against forensic analysts who may infer activities based on the contents of each VM cloned to zram_pool—`disp5478` and `disp2455` are generic names that could be any VM!
+This is an advantage against forensic analysts who may infer activities based on the contents of each VM cloned to zram_pool — `disp5478` and `disp2455` are generic names that could be any VM!
 
 > Knowing the timestamp, creation date, VM name, and its contents allows correlation with online activities.
 
@@ -97,7 +97,7 @@ qvm-run --dispvm=torbrowser qterminal
 # Generates disp7669
 ```
 
-With all disposables created this way, log and file metadata would always show camouflaged names. **However**, by default, **all named disposables—even those in zram_pool—create snapshots on SSD/HDD**:
+With all disposables created this way, log and file metadata would always show camouflaged names. **However**, by default, **all named disposables — even those in zram_pool — create snapshots on SSD/HDD**:
 
 ```bash
 /dev/qubes_dom0/vm-disp7669-root-snap
@@ -112,7 +112,7 @@ With AppVMs in zram_pool, snapshots remain in ZRAM (RAM) and leave no disk trace
 /dev/mapper/qubes_dom0-vm--torbrowser_appvm--root--snap
 ```
 
-Therefore, until this issue is resolved, **using only AppVMs is preferable**—their snapshots stay within zram and avoid SSD writes.
+Therefore, until this issue is resolved, **using only AppVMs is preferable** — their snapshots stay within zram and avoid SSD writes.
 
 ---
 
@@ -157,7 +157,7 @@ You can update dom0, VMs, templates, create additional templates, AppVMs, DVMs, 
 
 1. Configure anti-cold-boot attack modules in dom0 via DRACUT
 2. Boot dom0 100% in RAM
-3. Place AppVMs inside `varlibqubes` pool in dom0 — they'll reside 100% in RAM
+3. Place AppVMs inside `varlibqubes` pool in dom0  —  they'll reside 100% in RAM
 
 All logs, metadata, and timestamps are annihilated at shutdown with anti-cold-boot protection configured!
 
@@ -169,7 +169,7 @@ And overlayfs is even more secure:
 
 ### Usability Problems with This Mode
 
-To update dom0, configure VMs, or create new VMs is impossible — you must reboot, reconfigure to return to persistent mode, update/create new VMs/configure, then reboot again to resume 100% RAM usage!
+To update dom0, configure VMs, or create new VMs is impossible  —  you must reboot, reconfigure to return to persistent mode, update/create new VMs/configure, then reboot again to resume 100% RAM usage!
 
 In these situations, dom0 must remain persistent, requiring constant reboots, making usability horrible.
 
