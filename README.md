@@ -330,6 +330,71 @@ Found in:
 /tmp/dom0-content-24P0OU.tmp                                                  1 occurrence
 ```
 
+---
+
+## ⚠️ Metadata Leakage in `/home` Directory
+
+When analyzing forensic traces in dom0 after a disposable VM session, the following locations contain persistent metadata even when the VM itself is amnesic:
+
+| Path | Issue |
+|------|-------|
+| `/home/your_user/.xsession-errors.old` | Connection/disconnection timestamps from previous day |
+| `/home/your_user/.xsession-errors` | Active session connection logs (6+ occurrences) |
+| `/home/your_user/.local/state/wireplumber/stream-properties` | Audio device metadata with VM identifier |
+
+### Wireplumber Stream Properties Example
+
+```
+Output/Audio:application.name=whonix-tails-failsafe={
+  "volume":1.000000, 
+  "mute":false, 
+  "channelMap":["FL", "FR"], 
+  "channelVolumes":[1.000000, 1.000000]
+}
+```
+
+**Important**: `whonix-tails-failsafe` is a generic name — it does **not reveal** which disposable template generated this instance. However:
+
+- When using a regular AppVM (e.g., `anon-whonix`) in the zram-pool, its **real name** appears here
+- With named disposables (`disp7669`, `whonix-tails-failsafe`), only the generic identifier remains
+
+### Connection/Disconnection Timestamps
+
+In `.xsession-errors`, forensic analysts can correlate activity timelines:
+
+```
+2026-10-02 11:18:39,315 icon-receiver: connected: whonix-tails-failsafe
+2026-10-02 12:58:48,073 icon-receiver: disconnected: whonix-tails-failsafe
+```
+
+This reveals **when** the VM was active, even without knowing its origin template.
+
+---
+
+## 🔒 Why `/home` Cannot Be Mounted as `tmpfs`
+
+While mounting `/home` in RAM would eliminate these traces, it breaks usability:
+
+| Issue | Consequence |
+|-------|-------------|
+| `.desktop` launchers stored in `/home` | New VM icons disappear after reboot |
+| Application menus reset | Qubes GUI integration lost |
+| User settings cleared | Requires restoration before each use |
+| Update workflow disrupted | Must remount disk, update, reboot, remount RAM |
+
+```bash
+# Current workaround (not recommended for daily use)
+mount -o remount /home  # Restore disk mount → update Qubes → reboot → remount tmpfs
+```
+
+
+This allows correlation of when the VM started and shut down, which is why `/home` needs to be in tmpfs. However, keeping it in tmpfs loses usability—for updating new VMs, you'd need to restore normal disk mount, update Qubes, reboot, remount tmpfs, then use.
+
+This is because your `.desktop` launchers are all in `/home/your_user/.local`...
+
+Therefore, the ideal approach is to clone VMs with names like `disp3455`, `disp5477`, etc., disguised as named disposables to mask these metadata traces while keeping `/home` mounted and maintaining usability!
+---
+
 *Research ongoing. Contributions and improvements welcome.*
 
 # Doe monero para nos ajudar: (donate XMR)
