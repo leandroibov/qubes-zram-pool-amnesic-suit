@@ -112,8 +112,8 @@ This is critical metadata! While Qubes deletes the snapshot when you shut down `
 With AppVMs in zram_pool, snapshots remain in ZRAM (RAM) and leave no disk traces. See below!
 
 ```bash
-/dev/qubes_dom0/vm-torbrowser_appvm-root-snap
-/dev/mapper/qubes_dom0-vm--torbrowser_appvm--root--snap
+/dev/zram_vg/vm-torbrowser_appvm-private #está na ram
+/dev/zram_vg/vm-torbrowser_appvm-private-1790949900-back #está na ram
 ```
 
 Therefore, until this issue is resolved, **using only AppVMs is preferable** — their snapshots stay within zram and avoid SSD writes.
