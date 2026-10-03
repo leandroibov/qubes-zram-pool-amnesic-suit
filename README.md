@@ -330,8 +330,6 @@ Found in:
 /tmp/dom0-content-24P0OU.tmp                                                  1 occurrence
 ```
 
----
-
 ## ⚠️ Metadata Leakage in `/home` Directory
 
 When analyzing forensic traces in dom0 after a disposable VM session, the following locations contain persistent metadata even when the VM itself is amnesic:
@@ -393,7 +391,7 @@ This allows correlation of when the VM started and shut down, which is why `/hom
 This is because your `.desktop` launchers are all in `/home/your_user/.local`...
 
 Therefore, the ideal approach is to clone VMs with names like `disp3455`, `disp5477`, etc., disguised as named disposables to mask these metadata traces while keeping `/home` mounted and maintaining usability!
----
+
 
 *Research ongoing. Contributions and improvements welcome.*
 
