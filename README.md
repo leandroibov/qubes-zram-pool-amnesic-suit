@@ -226,8 +226,6 @@ Scan checked:
 
 ## 🔴 OTHER CRITICAL FOLDERS - **NOT HANDLED**
 
-```
-
 ### 📁 `/etc/libvirt/libxl/`
 ```
 /etc/libvirt/libxl/whonix-tails-failsafe.xml           2 occurrences
