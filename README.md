@@ -106,7 +106,11 @@ With all disposables created this way, log and file metadata would always show c
 
 This is critical metadata! While Qubes deletes the snapshot when you shut down `disp7669`, it was **written to disk first**!
 
-With AppVMs in zram_pool, snapshots remain in ZRAM (RAM) and leave no disk traces.
+With AppVMs in zram_pool, snapshots remain in ZRAM (RAM) and leave no disk traces. See below!
+```bash
+/dev/qubes_dom0/vm-torbrowser_appvm-root-snap
+/dev/mapper/qubes_dom0-vm--torbrowser_appvm--root--snap
+```
 
 Therefore, until this issue is resolved, **using only AppVMs is preferable**—their snapshots stay within zram and avoid SSD writes.
 
