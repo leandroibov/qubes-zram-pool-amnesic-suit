@@ -385,11 +385,6 @@ While mounting `/home` in RAM would eliminate these traces, it breaks usability:
 | User settings cleared | Requires restoration before each use |
 | Update workflow disrupted | Must remount disk, update, reboot, remount RAM |
 
-```bash
-# Current workaround (not recommended for daily use)
-mount -o remount /home  # Restore disk mount → update Qubes → reboot → remount tmpfs
-```
-
 
 This allows correlation of when the VM started and shut down, which is why `/home` needs to be in tmpfs. However, keeping it in tmpfs loses usability—for updating new VMs, you'd need to restore normal disk mount, update Qubes, reboot, remount tmpfs, then use.
 
