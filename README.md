@@ -53,6 +53,8 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 
 ---
 
+
+
 ## ⚙️ Recommended Setup Order
 #### Always use AppVMs, not Disposable VM templates inside zram_pool  —  this leaves important metadata on SSD even when inside zram_pool (explained further in this README.md)
 
@@ -64,6 +66,7 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 | 4 | **3** | Register VMs in clone registry (or clone manually) |
 | 5 | **4** | Create all registered clones. Auto-disables swap + `.bash_history` per session |
 | 6 | **17** | After use, randomize timestamps on unprotected directories (Ideal is 5-10 iteration) |
+
 
 ## ⚠️ Important Note: Registry Metadata Exposure
 
@@ -107,6 +110,7 @@ With all disposables created this way, log and file metadata would always show c
 This is critical metadata! While Qubes deletes the snapshot when you shut down `disp7669`, it was **written to disk first**!
 
 With AppVMs in zram_pool, snapshots remain in ZRAM (RAM) and leave no disk traces. See below!
+
 ```bash
 /dev/qubes_dom0/vm-torbrowser_appvm-root-snap
 /dev/mapper/qubes_dom0-vm--torbrowser_appvm--root--snap
@@ -322,8 +326,6 @@ Found in:
 
 **Backup Timestamp**: `998992877738`
 
-
-
 Found in:
 ```
 /var/lib/qubes/qubes.xml                                                      2 occurrences
@@ -331,8 +333,6 @@ Found in:
 /home/your_user/998992877738-rastros.txt                                           2 occurrences
 /tmp/dom0-content-24P0OU.tmp                                                  1 occurrence
 ```
-
-
 
 *Research ongoing. Contributions and improvements welcome.*
 
