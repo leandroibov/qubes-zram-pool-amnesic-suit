@@ -336,7 +336,9 @@ Found in:
 
 *Research ongoing. Contributions and improvements welcome.*
 
+
 # Doe monero para nos ajudar: (donate XMR)
+
 ```bash
 87JGuuwXzoMGwQAcSD7cvS7D7iacPpN2f5bVqETbUvCgdEmrPZa12gh5DSiKKRgdU7c5n5x1UvZLj8PQ7AAJSso5CQxgjak
 ```
