@@ -65,6 +65,51 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 | 5 | **4** | Create all registered clones. Auto-disables swap + `.bash_history` per session |
 | 6 | **17** | After use, randomize timestamps on unprotected directories (Ideal is 5-10 iteration) |
 
+## ⚠️ Important Note: Registry Metadata Exposure
+
+Using **Option 4** to generate AppVMs from the registry is more convenient but will produce significantly more metadata in directories not yet supported for tmpfs mounting. The registry records VM names being cloned to zram_pool—a forensic adversary will have access to this metadata!
+
+### 🎯 Ideal (But More Labor-Intensive) Method
+
+Clone each AppVM to zram_pool **manually**, naming them like disposable VMs (which default to `disp8755`, `disp2234`, `disp6590`, etc.):
+
+```bash
+# Example:
+qvm-clone -P=zram_pool my-appvm disp2455
+qvm-clone -P=zram_pool another-appvm disp5478
+```
+
+Use these `dispXXXX` names for your OpSec operations. For example, if you create `disp2455` and `disp5478`, the metadata and logs still written to disk will show only `disp5478` and `disp2455`. This **camouflages the metadata** about which type of AppVM you used and what it contained!
+
+This is an advantage against forensic analysts who may infer activities based on the contents of each VM cloned to zram_pool—`disp5478` and `disp2455` are generic names that could be any VM!
+
+> Knowing the timestamp, creation date, VM name, and its contents allows correlation with online activities.
+
+---
+
+## 🔴 Problem With Disposable Templates (DVM) in zram_pool
+
+Ideally, for maximum anonymity and camouflage, you would use a **Disposable Template** in zram_pool named (for example) `torbrowser`:
+
+```bash
+# Connect named disposable via qvm-run:
+qvm-run --dispvm=torbrowser qterminal
+# Generates disp7669
+```
+
+With all disposables created this way, log and file metadata would always show camouflaged names. **However**, by default, **all named disposables—even those in zram_pool—create snapshots on SSD/HDD**:
+
+```bash
+/dev/qubes_dom0/vm-disp7669-root-snap
+/dev/mapper/qubes_dom0-vm--disp7669--root--snap
+```
+
+This is critical metadata! While Qubes deletes the snapshot when you shut down `disp7669`, it was **written to disk first**!
+
+With AppVMs in zram_pool, snapshots remain in ZRAM (RAM) and leave no disk traces.
+
+Therefore, until this issue is resolved, **using only AppVMs is preferable**—their snapshots stay within zram and avoid SSD writes.
+
 ---
 
 ## 🎛️ Menu Options Summary
