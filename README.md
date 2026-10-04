@@ -76,7 +76,7 @@ Therefore, the ideal approach is to always use **named disposables** for greater
 
 By default, cloning AppVMs to `zram_pool` usindo `zram-pool-suit.sh` converts them into **disposable templates**, specifically for this purpose.
 ```bash
-qvm-run --dispvm=vm-disposable-template-name firefox
+qvm-run --dispvm disposable-template-name firefox
 ```
 This will create a named disposable (DispVM) with a generic name such as `disp4356`.
 
