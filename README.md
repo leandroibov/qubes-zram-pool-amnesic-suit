@@ -1,6 +1,7 @@
 # 🧊 Qubes ZRAM Pool Amnesic Suit
 
 **Live mode, 100% ZRAM (RAM) amnesic environment** for AppVMs and DVMs with primary metadata annihilated in dom0. Enables **hybrid Qubes operation**: run in persistent mode for standard workloads, and switch to amnesic mode for specific VMs requiring zero forensic traces.
+`Volatile volume` (volatile.img) for each named disposable or encrypted AppVM, using the automated `ephemeral` mode for any VM added to the amnesic zram_pool!
 
 ---
 
