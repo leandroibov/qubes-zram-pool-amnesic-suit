@@ -38,6 +38,8 @@
 
 # check_status()
 
+# zram_pool_ephemeral_check()
+
 # END SECTION
 # Qubes DVM Clone Manager Functions : Separared by category for organization
 #----------------------------------------------------------------
@@ -60,18 +62,6 @@
 # check_zram_amnesic_status()
 
 # create_all_clones()
-
-# create_single_clone() #2 repeated
-
-# remove_entry() #2 repeated
-
-# clear_registry() #2 repeated
-
-# delete_specific_dvm() #2 repeated
-
-# delete_all_dvms() #2 repeated
-
-# check_status() #2 repeated
 
 # END SECTION
 # Zram Pool Creator, Removal, and Dom0 Anti-Forensic Metadata Defense
@@ -759,16 +749,87 @@ check_status() {
     echo "------------------------------"
     echo ""
 
-echo "ZRAM pool size and DVM/APPVM usage"
-zramctl
-    echo
-
     echo "Summary:"
     echo "  Registry entries: $(wc -l < "$REGISTRY_FILE" 2>/dev/null | tr -d ' ' || echo 0)"
     echo "  Active clones detected: $pool_count"
     echo "  ZRAM pool: $ZRAM_POOL"
+    echo
+
+    # Check if zram_pool exists
+    #main if 
+    if ! qvm-pool list 2>/dev/null | grep -q "zram_pool"; then
+        return 0  # Pool does not exist, continue program
+    else
+    echo "zram_pool and other zram devices usage"
+    zramctl
+    echo 
+    echo "---------------------------------------"
+    echo "zram_pool ephemeral and snapshot status"
+    echo "---------------------------------------"
+    qvm-pool --info zram_pool | grep revisions_to_keep
+    qvm-pool --info zram_pool | grep ephemeral_volatile
+    echo
+    
+    #begin internal if
+    if [[ "$pool_count" -eq 0 ]]; then
+    return 0  # VMs does not exist, continue program
+    else
+    
+    echo "--------------------------------------------------"
+    echo "Ephemeral and snapshot status VMs inside zram_pool"
+    echo "--------------------------------------------------"
+        for vm in $vms; do
+        echo "$vm"
+        qvm-pool --info zram_pool | grep revisions_to_keep
+        qvm-pool --info zram_pool | grep ephemeral_volatile
+        echo
+        done
+    fi
+    #end internal if
+
+
+    fi
+    #end main if
+
+
 }
 #end check_status()
+
+#begin zram_pool_ephemeral_check()
+zram_pool_ephemeral_check() {
+    # Check if zram_pool exists
+    if ! qvm-pool list 2>/dev/null | grep -q "zram_pool"; then
+        return 0  # Pool does not exist, continue program
+    fi
+    
+    # Get pool info
+    local info=$(qvm-pool --info zram_pool 2>/dev/null)
+    
+    local ephemeral=$(echo "$info" | grep "ephemeral_volatile" | awk '{print $2}')
+    local revisions=$(echo "$info" | grep "revisions_to_keep" | awk '{print $2}')
+    
+    local needs_fix=false
+    
+    # Ensure ephemeral_volatile=True
+    if [[ "$ephemeral" != "True" ]]; then
+        needs_fix=true
+    fi
+    
+    # Ensure revisions_to_keep=0
+    if [[ "$revisions" != "0" ]]; then
+        needs_fix=true
+    fi
+    
+    if [[ "$needs_fix" == "true" ]]; then
+        qvm-pool -s zram_pool -o revisions_to_keep=0
+        qvm-pool -s zram_pool -o ephemeral_volatile=True
+    fi
+    
+    return 0
+}
+#end zram_pool_ephemeral_check()
+
+
 
 
 # =============================================================================
@@ -810,8 +871,18 @@ zramctl
 # *****************************************************************************
 # *****************************************************************************
 
+
+#begin zram_pool()
 zram_pool()
 {
+
+# Check if zram_pool exists and block creation
+if  qvm-pool list 2>/dev/null | grep -q "zram_pool"; then
+    echo "[!] ERROR: zram_pool exists!"
+    echo "[i] Remove it with option 2 to create other zram_pool."
+    return 1
+fi
+
 echo ""
 echo "==========================================================="
 echo "  [!] ZRAM AMNESIC POOL - WARNING"
@@ -832,7 +903,7 @@ echo ""
 echo "[*] ZRAM_SIZE set to: ${zram_pool_size}"
 echo ""
 
-sudo tee /etc/systemd/system/zram-pool.service << 'EOF'
+sudo cat > /etc/systemd/system/zram-pool.service << 'EOF'
 [Unit]
 Description=ZRAM Ephemeral Pool
 After=qubesd.service
@@ -848,7 +919,7 @@ WantedBy=multi-user.target
 EOF
 
 
-sudo tee /usr/local/bin/zram-pool-create.sh << 'EOF'
+sudo cat > /usr/local/bin/zram-pool-create.sh << 'EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -968,6 +1039,10 @@ fi
 qvm-pool add "${POOL_NAME}" lvm_thin --option volume_group="${VG_NAME}" --option thin_pool=thin_pool 2>/dev/null || \
 qvm-pool add "${POOL_NAME}" lvm_thin -o volume_group="${VG_NAME}",thin_pool=thin_pool
 
+echo "[*] Apply ephemeral (encrypted), volatile, and no-snapshots revision for pool ${POOL_NAME}..."
+qvm-pool -s "${POOL_NAME}" -o revisions_to_keep=0
+qvm-pool -s "${POOL_NAME}" -o ephemeral_volatile=True
+
 echo "    Pool created:"
 qvm-pool info "${POOL_NAME}"
 EOF
@@ -976,23 +1051,31 @@ EOF
 sed -i 's/ZRAM_SIZE="\$zram_pool_size"/ZRAM_SIZE="'$zram_pool_size'"/' /usr/local/bin/zram-pool-create.sh
 
 sudo chmod +x /usr/local/bin/zram-pool-create.sh
+
+
 echo "ZRAM pool activated"
 echo "Add only DVMs/APPVMs to it for amnesic anti-forensic mode"
-echo "AppVMs do not work — never create an AppVM inside zram_pool"
 sudo systemctl daemon-reload
 sudo systemctl enable --now zram-pool.service
+echo "Inheritance of encrypted ephemeral volatile for every AppVM or DVM cloned into it"
+echo "revisions_to_keep=0 and ephemeral_volatile=True"
+qvm-pool -s zram_pool -o revisions_to_keep=0
+qvm-pool -s zram_pool -o ephemeral_volatile=True
+echo
 }
+#end zram_pool()
 
+#begin amnesic_logs_metadata_dom0()
 amnesic_logs_metadata_dom0()
 {
-sudo tee /etc/systemd/journald.conf << EOF
+sudo cat > /etc/systemd/journald.conf << EOF
 [Journal]
 Storage=volatile
 EOF
 sudo systemctl restart systemd-journald
 
 mkdir -p /etc/systemd/system/
-sudo tee /etc/systemd/system/clean.service << 'EOF'
+sudo cat > /etc/systemd/system/clean.service << 'EOF'
 [Unit]
 Description=Clean logs of removed Qubes VMs
 After=qubesd.service
@@ -1006,7 +1089,7 @@ RemainAfterExit=no
 WantedBy=multi-user.target
 EOF
 
-sudo tee /usr/local/bin/clean.sh << 'EOF'
+sudo cat > /usr/local/bin/clean.sh << 'EOF'
 #!/bin/bash
 
 set -euo pipefail
@@ -1135,14 +1218,15 @@ find "${LOGDIR}/qubes/" -maxdepth 1 -type f -name '*.log.old' -delete
 EOF
 
 sudo chmod +x /usr/local/bin/clean.sh
-echo "Turn on amnesic logs and metadata in dom0 for zram-pool DVMs/APPVMs"
+echo "..."
+#echo "Install/Reinstalling amnesic logs and metadata in dom0 for zram-pool DVMs/APPVMs"
 sudo systemctl daemon-reload
 sudo systemctl enable clean.service
 }
+#end amnesic_logs_metadata_dom0()
 
 
-
-
+#begin remove_zram_pool()
 remove_zram_pool()
 {
 # Check if zram_pool exists
@@ -1216,8 +1300,10 @@ done
 
 echo "[+] zram pool completely removed. Reboot to clear all traces from memory."
 }
+#end remove_zram_pool()
 
 # Function: Check ZRAM Pool and DVM/APPVM Memory Status
+#begin check_zram_amnesic_status()
 check_zram_amnesic_status()
 {
 echo "=========================================="
@@ -1353,7 +1439,7 @@ echo "=========================================="
 echo "END OF ZRAM AMNESIC CHECK"
 echo "=========================================="
 }
-
+#end check_zram_amnesic_status()
 
 
 # =============================================================================
@@ -1447,364 +1533,6 @@ echo
     echo "========================================"
 }
 #end create_all_clones()
-
-# =============================================================================
-# CREATE SINGLE REGISTERED CLONE
-# =============================================================================
-
-#begin create_single_clone()
-create_single_clone() {
-    echo ""
-    echo "===== CREATE SINGLE REGISTERED CLONE ====="
-    
-    if [[ ! -s "$REGISTRY_FILE" ]]; then
-        echo "[!] Registry is empty. Nothing to clone!"
-        return 1
-    fi
-    
-    echo "Registered entries:"
-    echo "--------------------"
-    cat "$REGISTRY_FILE" | nl
-    echo "--------------------"
-    echo ""
-    
-    read -p "Enter entry number to clone: " ENTRY_NUM
-    
-    if ! [[ "$ENTRY_NUM" =~ ^[0-9]+$ ]]; then
-        echo "[!] ERROR: Invalid number!"
-        return 1
-    fi
-    
-    SELECTED_LINE=$(sed -n "${ENTRY_NUM}p" "$REGISTRY_FILE")
-    
-    if [[ -z "$SELECTED_LINE" ]]; then
-        echo "[!] ERROR: Entry $ENTRY_NUM does not exist!"
-        return 1
-    fi
-    
-    IFS=: read -r TARGET SOURCE NET <<< "$SELECTED_LINE"
-    
-    if [[ -z "$TARGET" || -z "$SOURCE" ]]; then
-        echo "[!] ERROR: Invalid entry format!"
-        return 1
-    fi
-    
-    if qvm-check "$TARGET" >/dev/null 2>&1; then
-        echo "[!] ERROR: '$TARGET' already exists! Cannot clone again."
-        echo "[i] Remove it first or choose a different entry."
-        return 1
-    fi
-    
-    echo ""
-    echo "[*] Cloning: $SOURCE -> $TARGET (pool: $ZRAM_POOL)"
-    echo "[*] NetVM: $NET"
-    echo "------------------------------------------------------"
-    
-    if qvm-clone -P="$ZRAM_POOL" "$SOURCE" "$TARGET" 2>/dev/null; then
-        echo "[OK] VM cloned successfully"
-        
-        if [[ "$NET" == "none" ]]; then
-            qvm-prefs "$TARGET" netvm ""
-            echo "[i] NetVM set to: NONE (no network)"
-        else
-            qvm-prefs "$TARGET" netvm "$NET"
-            echo "[i] NetVM set to: $NET"
-        fi
-        
-        qvm-prefs "$TARGET" template_for_dispvms True
-        echo "[i] Marked as DVM Template for Disposable VMs"
-        
-        echo ""
-        echo "[*] Starting VM to register volumes in zram_pool..."
-        if qvm-start "$TARGET" 2>/dev/null; then
-            echo "[i] VM started successfully"
-            sleep 5
-            
-            echo "[*] Shutting down VM..."
-            if qvm-shutdown --wait "$TARGET" 2>/dev/null; then
-                echo "[OK] VM shut down - volumes registered in /dev/$ZRAM_VG"
-                echo ""
-                echo "========================================"
-                echo "[SUCCESS] Clone created successfully!"
-                echo "========================================"
-            else
-                echo "[WARN] Shutdown failed! Trying force kill..."
-                qvm-kill "$TARGET" 2>/dev/null || true
-                sleep 2
-                echo "[WARN] Volume registration may be incomplete!"
-                echo ""
-                echo "========================================"
-                echo "[SUCCESS] Clone created (partial registration)"
-                echo "========================================"
-            fi
-        else
-            echo "[WARN] Failed to start VM! Volume registration may be incomplete!"
-            echo "[i] Run 'qvm-start $TARGET' manually later to register volumes"
-            echo ""
-            echo "========================================"
-            echo "[SUCCESS] Clone created (manual start needed)"
-            echo "========================================"
-        fi
-    else
-        echo "[FAIL] Clone command failed!"
-        echo ""
-        echo "========================================"
-        echo "[FAILED] Could not create clone"
-        echo "========================================"
-        return 1
-    fi
-
-echo
-    disable_bash_history
-echo "Disabling swap"
-    swap_off
-echo
-
-}
-#end create_single_clone()
-
-# =============================================================================
-# REMOVE ENTRY FROM REGISTRY
-# =============================================================================
-
-#begin remove_entry()
-remove_entry() {
-    echo ""
-    echo "===== REMOVE ENTRY FROM REGISTRY ====="
-    
-    if [[ ! -s "$REGISTRY_FILE" ]]; then
-        echo "[!] Registry is empty!"
-        return 1
-    fi
-    
-    echo "Current entries:"
-    cat "$REGISTRY_FILE" | nl
-    echo ""
-    
-    read -p "Enter entry number to remove: " NUM
-    
-    if ! [[ "$NUM" =~ ^[0-9]+$ ]]; then
-        echo "[!] Invalid number!"
-        return 1
-    fi
-    
-    sed -i "${NUM}d" "$REGISTRY_FILE"
-    echo "[+] Entry removed!"
-}
-#end remove_entry()
-
-# =============================================================================
-# CLEAR ENTIRE REGISTRY
-# =============================================================================
-
-#begin clear_registry()
-clear_registry() {
-    echo ""
-    echo "===== CLEAR ENTIRE REGISTRY ====="
-    
-    if [[ ! -s "$REGISTRY_FILE" ]]; then
-        echo "[!] Registry is already empty!"
-        return 1
-    fi
-    
-    read -p "Are you sure? (yes/no): " CONFIRM
-    if [[ "$CONFIRM" != "yes" ]]; then
-        echo "[!] Cancelled!"
-        return 1
-    fi
-    
-    : > "$REGISTRY_FILE"
-    echo "[+] Registry cleared!"
-}
-#end clear_registry()
-
-# =============================================================================
-# DELETE SPECIFIC DVM FROM ZRAM_POOL
-# =============================================================================
-
-#begin delete_specific_dvm()
-delete_specific_dvm() {
-    echo ""
-    echo "===== DELETE SPECIFIC DVM/APPVM FROM zram_pool ====="
-    
-    echo "Detecting VMs in zram_pool using multiple methods..."
-    echo "------------------------------------------------------"
-    
-    local vms=$(get_vms_in_zram_pool)
-    
-    if [[ -z "$vms" ]]; then
-        echo "[!] No VMs detected in zram_pool!"
-        echo "[i] Make sure at least one VM was started after cloning"
-        echo "[i] Try running 'qvm-start <vm-name>' first, then try again"
-        return 1
-    fi
-    
-    echo "VMs found in zram_pool:"
-    echo "$vms" | nl
-    echo ""
-    echo "Note: If a VM doesn't appear here but exists,"
-    echo "it hasn't been started since being added to the pool."
-    echo "Try starting it: qvm-start <vm-name>"
-    echo "------------------------------------------------------"
-    echo ""
-    
-    read -p "Enter DVM/APPVM name to delete: " VM_NAME
-    
-    if [[ -z "$VM_NAME" ]]; then
-        echo "[!] ERROR: VM name cannot be empty!"
-        return 1
-    fi
-    
-    if ! qvm-check "$VM_NAME" >/dev/null 2>&1; then
-        echo "[!] ERROR: VM '$VM_NAME' not found in Qubes!"
-        return 1
-    fi
-    
-    if ! echo "$vms" | grep -qx "$VM_NAME"; then
-        echo "[WARN] '$VM_NAME' was not detected in zram_pool by this script,"
-        echo "but will still try to delete it. It may not be in the correct pool."
-        read -p "Continue anyway? (yes/no): " CONFIRM
-        if [[ "$CONFIRM" != "yes" ]]; then
-            echo "[!] Cancelled!"
-            return 1
-        fi
-    fi
-    
-    read -p "Delete '$VM_NAME'? (yes/no): " CONFIRM
-    if [[ "$CONFIRM" != "yes" ]]; then
-        echo "[!] Cancelled!"
-        return 1
-    fi
-    
-    if qvm-check --running "$VM_NAME" >/dev/null 2>&1; then
-        echo "[*] Shutting down $VM_NAME..."
-        qvm-shutdown --wait "$VM_NAME" 2>/dev/null || qvm-kill "$VM_NAME" 2>/dev/null
-        sleep 2
-    fi
-    
-    qvm-remove --force "$VM_NAME"
-    echo "[+] '$VM_NAME' deleted!"
-}
-#end delete_specific_dvm()
-
-# =============================================================================
-# DELETE ALL DVMS FROM ZRAM_POOL
-# =============================================================================
-
-#begin delete_all_dvms()
-delete_all_dvms() {
-    echo ""
-    echo "===== DELETE ALL DVMs/APPVMs FROM zram_pool ====="
-    
-    echo "Detecting VMs in zram_pool using multiple methods..."
-    echo "------------------------------------------------------"
-    
-    local vms=$(get_vms_in_zram_pool)
-    
-    if [[ -z "$vms" ]]; then
-        echo "[!] No VMs detected in zram_pool!"
-        echo "[i] Make sure at least one VM was started after cloning"
-        echo "[i] Try running 'qvm-start <vm-name>' first, then try again"
-        return 1
-    fi
-    
-    echo "VMs found in zram_pool that will be DELETED:"
-    echo "$vms" | nl
-    echo "------------------------------------------------------"
-    echo ""
-    
-    read -p "DELETE ALL THESE DVMs/APPVMs? (yes/no): " CONFIRM
-    if [[ "$CONFIRM" != "yes" ]]; then
-        echo "[!] Cancelled!"
-        return 1
-    fi
-    
-    local count=0
-    
-    for vm in $vms; do
-        echo "Processing: $vm"
-        
-        if qvm-check --running "$vm" >/dev/null 2>&1; then
-            echo "  [*] Shutting down..."
-            qvm-shutdown --wait "$vm" 2>/dev/null || qvm-kill "$vm" 2>/dev/null
-            sleep 2
-        fi
-        
-        qvm-remove --force "$vm"
-        ((count++)) || true
-    done
-    
-    if [[ $count -eq 0 ]]; then
-        echo "[i] No VMs were deleted (none found or all already gone)"
-    else
-        echo "[+] Deleted $count VM(s) from zram_pool!"
-    fi
-}
-#end delete_all_dvms()
-
-# =============================================================================
-# CHECK STATUS
-# =============================================================================
-
-#begin check_status()
-check_status() {
-    echo ""
-    echo "===== REGISTRY & zram_pool STATUS ====="
-    
-    echo "Registry entries:"
-    echo "------------------"
-    if [[ -s "$REGISTRY_FILE" ]]; then
-        cat "$REGISTRY_FILE" | nl
-    else
-        echo "  [Empty]"
-    fi
-    echo ""
-    
-    echo "VMs detected in zram_pool:"
-    echo "--------------------------"
-    local pool_count=0
-    
-    local vms=$(get_vms_in_zram_pool)
-    
-    if [[ -z "$vms" ]]; then
-        echo "  [None detected]"
-        echo "  Note: VMs must be started at least once to be visible in /dev/$ZRAM_VG"
-    else
-        for vm in $vms; do
-            local netvm=$(qvm-prefs "$vm" netvm 2>/dev/null || echo "None")
-            local disp=$(qvm-prefs "$vm" template_for_dispvms 2>/dev/null || echo "False")
-            local pool=$(qvm-prefs "$vm" default_volume_pool 2>/dev/null || echo "Unknown")
-            
-            echo "  $vm"
-            echo "    ├─ Pool: $pool"
-            echo "    ├─ NetVM: $netvm"
-            echo "    └─ DispTemplate: $disp"
-            ((pool_count++)) || true
-        done
-    fi
-    echo "--------------------------"
-    echo ""
-    
-    echo "LVM Devices in /dev/$ZRAM_VG:"
-    echo "------------------------------"
-    if [[ -d "/dev/$ZRAM_VG" ]]; then
-        ls /dev/$ZRAM_VG/ 2>/dev/null | head -20 || echo "  [Cannot read]"
-    else
-        echo "  [Directory does not exist]"
-    fi
-    echo "------------------------------"
-    echo ""
-    
-    echo "ZRAM pool size and DVM/APPVM usage:"
-    zramctl
-    echo
-    
-    echo "Summary:"
-    echo "  Registry entries: $(wc -l < "$REGISTRY_FILE" 2>/dev/null | tr -d ' ' || echo 0)"
-    echo "  Active clones detected: $pool_count"
-    echo "  ZRAM pool: $ZRAM_POOL"
-}
-#end check_status()
 
 # *****************************************************************************
 # *****************************************************************************
@@ -2124,13 +1852,13 @@ EOF
 # backup journld.conf
 sudo cp /etc/systemd/journald.conf /etc/systemd/journald.conf.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
 
-sudo tee /etc/systemd/journald.conf << EOF
+sudo cat > /etc/systemd/journald.conf << EOF
 [Journal]
 Storage=volatile
 EOF
 sudo systemctl restart systemd-journald
 
-sudo tee /etc/systemd/system/clean.service << 'EOF'
+sudo cat > /etc/systemd/system/clean.service << 'EOF'
 [Unit]
 Description=Clean logs of removed Qubes VMs
 After=qubesd.service
@@ -2144,7 +1872,7 @@ RemainAfterExit=no
 WantedBy=multi-user.target
 EOF
 
-sudo tee /usr/local/bin/clean.sh << 'EOF'
+sudo cat > /usr/local/bin/clean.sh << 'EOF'
 #!/bin/bash
 
 set -euo pipefail
@@ -3542,6 +3270,8 @@ fi
 # =============================================================================
 # =============================================================================
 
+# Service-failure fallback: enforce ephemeral storage and zero snapshot revisions for all VMs assigned to zram_pool
+zram_pool_ephemeral_check
 
 # =============================================================================
 # MAIN MENU
