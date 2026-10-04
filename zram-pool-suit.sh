@@ -6,24 +6,6 @@
 #Functions and order 
 # control + f #begin funcion_name() and #end funcion_name()
 
-#BUGS AND TREATMENT
-#to repair or improve
-#repeated functions, look for #2 repeated
-# BUG: Named disposables created from Disposable Templates (DVM) in zram_pool
-# generate snapshots in SSD outside zram_pool and are not amnesic
-# See example for disp7669 created from one DVM inside zram_pool
-# /dev/qubes_dom0/vm-disp7669-root-snap
-# /dev/mapper/qubes_dom0-vm--disp7669--root--snap
-# Require cancel snapshot generation in /dev/qubes_dom0/, research will study how to do it!
-# It is necessary to use AppVMs in zram_pool and snapshots will be inside zram_pool
-# See example AppVM torbrowser cloned to zram_pool
-# /dev/zram_vg/vm-torbrowser-private #está na RAM
-# /dev/zram_vg/vm-torbrowser-private-1790949900-back
-# /dev/mapper/zram_vg-vm--torbrowser--private
-# /dev/mapper/zram_vg-vm--torbrowser--private--1790949900
-#commented till solution
-#4 times, look for here: qvm-prefs "$TARGET" template_for_dispvms True
-
 # Global variables block
 
 # check_root()
@@ -379,9 +361,7 @@ create_all_clones() {
                 echo "[i] NetVM set to: $NET"
             fi
             
-            #qvm-prefs "$TARGET" template_for_dispvms True
- #deactivated temporary!
- #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
+            qvm-prefs "$TARGET" template_for_dispvms True
             
             # Start and shutdown to register volumes in LVM
             echo "[*] Starting VM to register volumes in zram_pool..."
@@ -492,10 +472,9 @@ create_single_clone() {
         fi
         
         # Step 3: Mark as DVM Template
-        #qvm-prefs "$TARGET" template_for_dispvms True
- #deactivated temporary!
- #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
-        #echo "[i] Marked as DVM Template for Disposable VMs"
+        qvm-prefs "$TARGET" template_for_dispvms True
+
+        echo "[i] Marked as DVM Template for Disposable VMs"
         
         # Step 4: Start and shutdown to register volumes in LVM
         echo ""
@@ -1420,9 +1399,7 @@ create_all_clones() {
                 echo "[i] NetVM set to: $NET"
             fi
             
-            #qvm-prefs "$TARGET" template_for_dispvms True
- #deactivated temporary!
- #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
+            qvm-prefs "$TARGET" template_for_dispvms True
             
             echo "[*] Starting VM to register volumes in zram_pool..."
             if qvm-start "$TARGET" 2>/dev/null; then
@@ -1534,10 +1511,8 @@ create_single_clone() {
             echo "[i] NetVM set to: $NET"
         fi
         
-        #qvm-prefs "$TARGET" template_for_dispvms True
- #deactivated temporary!
- #problem with DVMs inside zram_pool: generate snapshots in SSD outside zram_pool and are not amnesic
-        #echo "[i] Marked as DVM Template for Disposable VMs"
+        qvm-prefs "$TARGET" template_for_dispvms True
+        echo "[i] Marked as DVM Template for Disposable VMs"
         
         echo ""
         echo "[*] Starting VM to register volumes in zram_pool..."
@@ -3580,7 +3555,7 @@ show_menu_main() {
     echo "==========================================================="
     echo ""
     echo "  --- ZRAM POOL (ANTI-FORENSIC) ---"
-    echo "   1) Create ZRAM Pool for amnesic DVM/APPVM and appVMs"
+    echo "   1) Create ZRAM Pool for amnesic DVMs/APPVMs"
     echo "   2) Remove ZRAM Pool and Related Artifacts"
     echo ""
     echo "  --- DVM/APPVM CLONE MANAGER (ZRAM_POOL) ---"
