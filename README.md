@@ -225,7 +225,7 @@ whonix-tails-failsafe-bk/apps/*.desktop                   (28 files)
 whonix-tails-failsafe/apps/*.desktop                      (24 files)
 ```
 
-### 📁 `/run/udev/data/`
+### 📁 `/run/udev/data/` It is in tmpfs by default by qubes
 ```
 /run/udev/data/b252:395                                    2
 /run/udev/data/b252:419                                    2
@@ -234,7 +234,7 @@ whonix-tails-failsafe/apps/*.desktop                      (24 files)
 /run/udev/data/b252:409                                    2
 ```
 
-### 📁 `/tmp/`
+### 📁 `/tmp/` It is in tmpfs by default by qubes
 ```
 /tmp/dom0-content-MIThGW.tmp                              51
 ```
@@ -284,7 +284,7 @@ Using a **named disposable** produces the same type of snapshot, but at least th
 | **`/home/your_user/.local/share/applications/`** | 38 | ~240 | ⚠️ **Not handled** |
 | **`/home/your_user/.local/share/qubes-appmenus/`** | 52 | ~300 | ⚠️ **Not handled** |
 | **`/home/your_user/.local/share/desktop-directories/`** | 2 | 2 | ⚠️ **Not handled** |
-| **`/run/udev/data/`** | 5 | 10 | ⚠️ **Not handled** |
+| **`/run/udev/data/`** | 5 | 10 | ⚠️ Volatile (RAM)|
 | **`/tmp/`** | 1 | 51 | ⚠️ Volatile (RAM) |
 | **`/home/your_user/.xsession-errors`** | 1 | 35 | ⚠️ **Not handled** |
 | **`/dev/qubes_dom0/vm-whonix-tails-failsafe-root-snap`** | 1 |  | ⚠️ **Not handled** |
