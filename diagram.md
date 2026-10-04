@@ -244,23 +244,6 @@
 
 ## Bug Report
 
-```bash
-# BUG: Named disposables created from Disposable Templates (DVM) in zram_pool
-# generate snapshots in SSD outside zram_pool and are not amnesic
-# See example for disp7669 created from one DVM inside zram_pool
-# /dev/qubes_dom0/vm-disp7669-root-snap
-# /dev/mapper/qubes_dom0-vm--disp7669--root--snap
-# Require cancel snapshot generation in /dev/qubes_dom0/, research will study how to do it!
-# It is necessary to use AppVMs in zram_pool and snapshots will be inside zram_pool
-# See example AppVM torbrowser cloned to zram_pool
-# /dev/zram_vg/vm-torbrowser-private #está na RAM
-# /dev/zram_vg/vm-torbrowser-private-1790949900-back
-# /dev/mapper/zram_vg-vm--torbrowser--private
-# /dev/mapper/zram_vg-vm--torbrowser--private--1790949900
-#commented till solution
-#4 times, look for here: qvm-prefs "$TARGET" template_for_dispvms True
-```
-
 ---
 
 *Diagram generated for developer reference and GitHub documentation*
