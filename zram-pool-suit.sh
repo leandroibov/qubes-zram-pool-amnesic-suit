@@ -2751,7 +2751,7 @@ system_wide_metadata_randomizer() {
                 "/etc/qubes/backup"
                 "/home"
                 "/var/lib/qubes"
-                "/etc/systemd/system"
+                
             )
             MODE="MULTIPLE"
             echo "[OK] Selected: MULTIPLE (5 Standard Critical Directories)"
@@ -2771,7 +2771,7 @@ system_wide_metadata_randomizer() {
                 "/etc/qubes/backup"
                 "/home"
                 "/var/lib/qubes"
-                "/etc/systemd/system"
+                
             )
             MODE="MULTIPLE"
             ;;
