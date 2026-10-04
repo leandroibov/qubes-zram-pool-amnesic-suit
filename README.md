@@ -17,7 +17,7 @@ This script provides **partial anti-forensic protection**. To achieve **100% ant
 |                            | `~/`                        |
 |----------------------------|-----------------------------|
 
-The script successfully mounts the first three without bugs. However, the remaining directories store critical VM metadata (timestamps, creation/modification/access dates) that can correlate online activities even if not primary forensic data  —  a potential vulnerability for physical adversaries with dom0 password access.
+The script successfully mounts the first three without bugs. However, the remaining directories store critical VM metadata (timestamps, creation/modification/access dates) that can correlate online activities even if not primary forensic data   —   a potential vulnerability for physical adversaries with dom0 password access.
 
 Additional protections:
 - ✅ `.bash_history` disabled (root + user)
@@ -56,67 +56,30 @@ Based on: [Qubes Forum - Overlay/Tmpfs/ZRAM Ephemeral VM Guide](https://web.arch
 
 
 ## ⚙️ Recommended Setup Order
-#### Always use AppVMs, not Disposable VM templates inside zram_pool  —  this leaves important metadata on SSD even when inside zram_pool (explained further in this README.md)
+#### Always use Named Disposable for additional camouflage
 
 | Step | Option | Action |
 |------|--------|--------|
 | 1️⃣ | **13** | Enable `tmpfs` mounts for `/var/log`, `/etc/lvm/archive`, `/etc/lvm/backup`. **Reboot required.** |
-| 2 | **11** | Anti Cold Boot  —  in the keyboard settings, create a shortcut such as `Control + Alt + Space` for `halt -p` to trigger a rapid shutdown in the event of a physical attack or imminent threat. **Reboot required.** |
+| 2 | **11** | Anti Cold Boot   —   in the keyboard settings, create a shortcut such as `Control + Alt + Space` for `halt -p` to trigger a rapid shutdown in the event of a physical attack or imminent threat. **Reboot required.** |
 | 3 | **1** | Create `zram_pool` (ZRAM amnesic pool for VMs) |
 | 4 | **3** | Register VMs in clone registry (or clone manually) |
 | 5 | **4** | Create all registered clones. Auto-disables swap + `.bash_history` per session |
 | 6 | **17** | After use, randomize timestamps on unprotected directories (Ideal is 5-10 iteration) |
 
 
-## ⚠️ Important Note: Registry Metadata Exposure
+Ideally, always use **named disposables**, since they generate names such as `disp2344` and `disp4355` instead of exposing the name of the AppVM being used  —  an important metadata detail. Using generic names provides additional camouflage in logs, which are still stored under `~/`.
 
-Using **Option 4** to generate AppVMs from the registry is more convenient but will produce significantly more metadata in directories not yet supported for tmpfs mounting. The registry records VM names being cloned to zram_pool — a forensic adversary will have access to this metadata!
+Under `/dev/qubes_dom0` and `/dev/mapper`, snapshots will be created using the name of the VM or disposable being used. This cannot be avoided because it is part of Qubes’ architecture. If you use AppVMs with normal names, there is less of an advantage than using named disposables with randomly generated generic names such as `disp4355`. This helps conceal the name of the VM that generated the snapshot, even though the snapshot itself is written to disk.
 
-### 🎯 Ideal (But More Labor-Intensive) Method
+Therefore, the ideal approach is to always use **named disposables** for greater obfuscation and an advantage against forensic analysis.
 
-Clone each AppVM to zram_pool **manually**, naming them like disposable VMs (which default to `disp8755`, `disp2234`, `disp6590`, etc.):
-
+By default, cloning AppVMs to `zram_pool` usindo `zram-pool-suit.sh` converts them into **disposable templates**, specifically for this purpose.
 ```bash
-# Example:
-qvm-clone -P=zram_pool my-appvm disp2455
-qvm-clone -P=zram_pool another-appvm disp5478
+qvm-run --dispvm=vm-disposable-template-name firefox
 ```
+This will create a named disposable (DispVM) with a generic name such as `disp4356`.
 
-Use these `dispXXXX` names for your OpSec operations. For example, if you create `disp2455` and `disp5478`, the metadata and logs still written to disk will show only `disp5478` and `disp2455`. This **camouflages the metadata** about which type of AppVM you used and what it contained!
-
-This is an advantage against forensic analysts who may infer activities based on the contents of each VM cloned to zram_pool — `disp5478` and `disp2455` are generic names that could be any VM!
-
-> Knowing the timestamp, creation date, VM name, and its contents allows correlation with online activities.
-
----
-
-## 🔴 Problem With Disposable Templates (DVM) in zram_pool
-
-Ideally, for maximum anonymity and camouflage, you would use a **Disposable Template** in zram_pool named (for example) `torbrowser`:
-
-```bash
-# Connect named disposable via qvm-run:
-qvm-run --dispvm=torbrowser qterminal
-# Generates disp7669
-```
-
-With all disposables created this way, log and file metadata would always show camouflaged names. **However**, by default, **all named disposables — even those in zram_pool — create snapshots on SSD/HDD**:
-
-```bash
-/dev/qubes_dom0/vm-disp7669-root-snap
-/dev/mapper/qubes_dom0-vm--disp7669--root--snap
-```
-
-This is critical metadata! While Qubes deletes the snapshot when you shut down `disp7669`, it was **written to disk first**!
-
-With AppVMs in zram_pool, snapshots remain in ZRAM (RAM) and leave no disk traces. See below!
-
-```bash
-/dev/zram_vg/vm-torbrowser_appvm-private #está na ram
-/dev/zram_vg/vm-torbrowser_appvm-private-1790949900-back #está na ram
-```
-
-Therefore, until this issue is resolved, **using only AppVMs is preferable** — their snapshots stay within zram and avoid SSD writes.
 
 ---
 
@@ -150,7 +113,6 @@ Therefore, until this issue is resolved, **using only AppVMs is preferable** —
 ---
 
 
-
 ## Usability and Advantages of Using zram_pool Despite Not Being 100% Anti-Forensic!
 
 **Hybrid operation**: You can use persistent mode alongside some RAM-resident VMs simultaneously without needing to reboot or reconfigure dom0 for persistent VM settings.
@@ -161,7 +123,7 @@ You can update dom0, VMs, templates, create additional templates, AppVMs, DVMs, 
 
 1. Configure anti-cold-boot attack modules in dom0 via DRACUT
 2. Boot dom0 100% in RAM
-3. Place AppVMs inside `varlibqubes` pool in dom0  —  they'll reside 100% in RAM
+3. Place AppVMs inside `varlibqubes` pool in dom0   —   they'll reside 100% in RAM
 
 All logs, metadata, and timestamps are annihilated at shutdown with anti-cold-boot protection configured!
 
@@ -173,7 +135,7 @@ And overlayfs is even more secure:
 
 ### Usability Problems with This Mode
 
-To update dom0, configure VMs, or create new VMs is impossible  —  you must reboot, reconfigure to return to persistent mode, update/create new VMs/configure, then reboot again to resume 100% RAM usage!
+To update dom0, configure VMs, or create new VMs is impossible   —   you must reboot, reconfigure to return to persistent mode, update/create new VMs/configure, then reboot again to resume 100% RAM usage!
 
 In these situations, dom0 must remain persistent, requiring constant reboots, making usability horrible.
 
@@ -287,6 +249,26 @@ whonix-tails-failsafe/apps/*.desktop                      (24 files)
 /var/log/libvirt/libxl/whonix-tails-failsafe.log           5
 ```
 
+### Snapshot Metadata
+
+A snapshot was created during use, but Qubes deletes it when the VM is shut down. However, while the VM is running, the snapshot is written to disk using the VM’s name.
+
+`qubes-forensic-hunter.sh` did not detect it during the first test because the scan was performed after `whonix-tails-failsafe` had already been shut down.
+
+In the test performed while the VM was still running, it was detected as shown below. This is another unavoidable piece of metadata stored outside `zram_pool`:
+
+```text
+/dev/qubes_dom0/vm-whonix-tails-failsafe-root-snap
+/dev/mapper/qubes_dom0-vm--whonix-tails-failsafe--root--snap
+```
+
+Using a **named disposable** produces the same type of snapshot, but at least the name is randomized rather than exposing the actual VM name. This creates an additional obstacle for adversaries attempting to recover data written to disk:
+
+```text
+/dev/qubes_dom0/vm-disp7669-root-snap
+/dev/mapper/qubes_dom0-vm--disp7669--root--snap
+```
+
 ---
 
 ## 📋 SUMMARY BY CATEGORY
@@ -305,7 +287,9 @@ whonix-tails-failsafe/apps/*.desktop                      (24 files)
 | **`/run/udev/data/`** | 5 | 10 | ⚠️ **Not handled** |
 | **`/tmp/`** | 1 | 51 | ⚠️ Volatile (RAM) |
 | **`/home/your_user/.xsession-errors`** | 1 | 35 | ⚠️ **Not handled** |
-| **TOTAL** | **~455+** | **~1270+** | |
+| **`/dev/qubes_dom0/vm-whonix-tails-failsafe-root-snap`** | 1 |  | ⚠️ **Not handled** |
+| **`/dev/mapper/qubes_dom0-vm--whonix-tails-failsafe--root--snap`** | 1 |  | ⚠️ **Not handled** |
+| **TOTAL** | **~457+** | **~1272+** | |
 
 ---
 
@@ -356,7 +340,7 @@ Output/Audio:application.name=whonix-tails-failsafe={
 }
 ```
 
-**Important**: `whonix-tails-failsafe` is a generic name — it does **not reveal** which disposable template generated this instance. However:
+**Important**: `whonix-tails-failsafe` is a generic name  —  it does **not reveal** which disposable template generated this instance. However:
 
 - When using a regular AppVM (e.g., `anon-whonix`) in the zram-pool, its **real name** appears here
 - With named disposables (`disp7669`, `whonix-tails-failsafe`), only the generic identifier remains
@@ -386,11 +370,11 @@ While mounting `/home` in RAM would eliminate these traces, it breaks usability:
 | Update workflow disrupted | Must remount disk, update, reboot, remount RAM |
 
 
-This allows correlation of when the VM started and shut down, which is why `/home` needs to be in tmpfs. However, keeping it in tmpfs loses usability—for updating new VMs, you'd need to restore normal disk mount, update Qubes, reboot, remount tmpfs, then use.
+This allows correlation of when the VM started and shut down, which is why `/home` needs to be in tmpfs. However, keeping it in tmpfs loses usability — for updating new VMs, you'd need to restore normal disk mount, update Qubes, reboot, remount tmpfs, then use.
 
 This is because your `.desktop` launchers are all in `/home/your_user/.local`...
 
-Therefore, the ideal approach is to clone VMs with names like `disp3455`, `disp5477`, etc., disguised as named disposables to mask these metadata traces while keeping `/home` mounted and maintaining usability!
+
 ---
 
 
